@@ -25,6 +25,11 @@ builder.Services.Configure<SecurityOptions>(
     builder.Configuration.GetSection(SecurityOptions.SectionName));
 builder.Services.Configure<ThrottlingOptions>(
     builder.Configuration.GetSection(ThrottlingOptions.SectionName));
+builder.Services.Configure<CachingOptions>(
+    builder.Configuration.GetSection(CachingOptions.SectionName));
+
+// Add memory cache for API response caching
+builder.Services.AddMemoryCache();
 
 // Add HttpClient factory for health checks and other HTTP requests
 builder.Services.AddHttpClient();
@@ -42,6 +47,9 @@ builder.Services.AddSingleton<BookStackClient>(serviceProvider =>
     
     return new BookStackClient(apiUri, bookStackOptions.TokenId, bookStackOptions.TokenSecret);
 });
+
+// Add cached wrapper for BookStack API client
+builder.Services.AddSingleton<CachedBookStackClient>();
 
 // Add MCP Server with HTTP transport and BookStack tools
 var bookStackOptionsForTools = builder.Configuration.GetSection(BookStackOptions.SectionName).Get<BookStackOptions>();
