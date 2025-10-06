@@ -269,6 +269,57 @@ docker run -d \
 - When the limit is exceeded, the server returns a `429 Too Many Requests` response
 - Set `Enabled` to `false` to disable throttling entirely
 
+### In-Memory Caching
+
+The server includes built-in in-memory caching for BookStack API responses to improve performance and reduce load on the BookStack server. Caching is applied to all read operations (list, get, search).
+
+**Configuration:**
+
+In `appsettings.json`:
+```json
+{
+  "Caching": {
+    "Enabled": true,
+    "AbsoluteExpirationMinutes": 5,
+    "SlidingExpirationMinutes": 2
+  }
+}
+```
+
+Or via environment variables:
+```bash
+Caching__Enabled=true
+Caching__AbsoluteExpirationMinutes=5
+Caching__SlidingExpirationMinutes=2
+```
+
+**Docker example:**
+```bash
+docker run -d \
+  -p 8080:8080 \
+  -e BookStack__BaseUrl=https://your-bookstack-instance.com \
+  -e BookStack__TokenId=your-token-id \
+  -e BookStack__TokenSecret=your-token-secret \
+  -e Caching__Enabled=true \
+  -e Caching__AbsoluteExpirationMinutes=5 \
+  -e Caching__SlidingExpirationMinutes=2 \
+  --name bookstack-mcp-server \
+  bookstack-mcp-server
+```
+
+**Configuration Options:**
+- `Enabled` - Enable or disable caching (default: `true`)
+- `AbsoluteExpirationMinutes` - Maximum time an item stays in cache regardless of access (default: `5` minutes)
+- `SlidingExpirationMinutes` - Time window of inactivity before an item expires (default: `2` minutes)
+
+**Notes:**
+- Caching significantly improves response times for repeated requests
+- Each unique request (different parameters) is cached separately
+- Absolute expiration ensures data freshness by forcing cache refresh after a maximum time
+- Sliding expiration keeps frequently accessed items in cache longer
+- Set `Enabled` to `false` to disable caching entirely
+- Write operations are not cached and automatically invalidate relevant cache entries
+
 ### Health Check Endpoints
 
 The server provides ASP.NET Core health check endpoints for monitoring:

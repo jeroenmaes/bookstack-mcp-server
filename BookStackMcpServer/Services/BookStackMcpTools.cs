@@ -9,10 +9,10 @@ namespace BookStackMcpServer.Services;
 [McpServerToolType]
 public class BookStackMcpTools
 {
-    private readonly BookStackClient _client;
+    private readonly CachedBookStackClient _client;
     private readonly ILogger<BookStackMcpTools> _logger;
 
-    public BookStackMcpTools(BookStackClient client, ILogger<BookStackMcpTools> logger)
+    public BookStackMcpTools(CachedBookStackClient client, ILogger<BookStackMcpTools> logger)
     {
         _client = client;
         _logger = logger;
@@ -28,7 +28,6 @@ public class BookStackMcpTools
             _logger.LogInformation("Listing books with offset={Offset}, count={Count}", offset, count);
             var listing = new ListingOptions(offset: offset, count: count);
             var response = await _client.ListBooksAsync(listing);
-            _logger.LogDebug("Retrieved {Count} books", response.data.Length);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -65,7 +64,6 @@ public class BookStackMcpTools
             _logger.LogInformation("Listing chapters with offset={Offset}, count={Count}", offset, count);
             var listing = new ListingOptions(offset: offset, count: count);
             var response = await _client.ListChaptersAsync(listing);
-            _logger.LogDebug("Retrieved {Count} chapters", response.data.Length);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -102,7 +100,6 @@ public class BookStackMcpTools
             _logger.LogInformation("Listing pages with offset={Offset}, count={Count}", offset, count);
             var listing = new ListingOptions(offset: offset, count: count);
             var response = await _client.ListPagesAsync(listing);
-            _logger.LogDebug("Retrieved {Count} pages", response.data.Length);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -139,7 +136,6 @@ public class BookStackMcpTools
             _logger.LogInformation("Listing shelves with offset={Offset}, count={Count}", offset, count);
             var listing = new ListingOptions(offset: offset, count: count);
             var response = await _client.ListShelvesAsync(listing);
-            _logger.LogDebug("Retrieved {Count} shelves", response.data.Length);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -176,7 +172,6 @@ public class BookStackMcpTools
             _logger.LogInformation("Listing users with offset={Offset}, count={Count}", offset, count);
             var listing = new ListingOptions(offset: offset, count: count);
             var response = await _client.ListUsersAsync(listing);
-            _logger.LogDebug("Retrieved {Count} users", response.data.Length);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -215,17 +210,18 @@ public class BookStackMcpTools
             var args = new SearchArgs(query, count, page);
             var response = await _client.SearchAsync(args);
             
+            // Cast to dynamic to access properties
+            dynamic dynamicResponse = response;
             var results = new
             {
                 query = query,
-                total = response.total,
-                books = response.books().ToList(),
-                chapters = response.chapters().ToList(),
-                pages = response.pages().ToList(),
-                shelves = response.shelves().ToList()
+                total = dynamicResponse.total,
+                books = ((IEnumerable<dynamic>)dynamicResponse.books()).ToList(),
+                chapters = ((IEnumerable<dynamic>)dynamicResponse.chapters()).ToList(),
+                pages = ((IEnumerable<dynamic>)dynamicResponse.pages()).ToList(),
+                shelves = ((IEnumerable<dynamic>)dynamicResponse.shelves()).ToList()
             };
             
-            _logger.LogDebug("Search returned {Total} total results", response.total);
             return JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -246,14 +242,16 @@ public class BookStackMcpTools
             var args = new SearchArgs(query, count, page);
             var response = await _client.SearchAsync(args);
             
+            // Cast to dynamic to access properties
+            dynamic dynamicResponse = response;
+            var booksList = ((IEnumerable<dynamic>)dynamicResponse.books()).ToList();
             var results = new
             {
                 query = query,
-                total = response.books().Count(),
-                data = response.books().ToList()
+                total = booksList.Count,
+                data = booksList
             };
             
-            _logger.LogDebug("Books search returned {Total} results", results.total);
             return JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -274,14 +272,16 @@ public class BookStackMcpTools
             var args = new SearchArgs(query, count, page);
             var response = await _client.SearchAsync(args);
             
+            // Cast to dynamic to access properties
+            dynamic dynamicResponse = response;
+            var chaptersList = ((IEnumerable<dynamic>)dynamicResponse.chapters()).ToList();
             var results = new
             {
                 query = query,
-                total = response.chapters().Count(),
-                data = response.chapters().ToList()
+                total = chaptersList.Count,
+                data = chaptersList
             };
             
-            _logger.LogDebug("Chapters search returned {Total} results", results.total);
             return JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -302,14 +302,16 @@ public class BookStackMcpTools
             var args = new SearchArgs(query, count, page);
             var response = await _client.SearchAsync(args);
             
+            // Cast to dynamic to access properties
+            dynamic dynamicResponse = response;
+            var pagesList = ((IEnumerable<dynamic>)dynamicResponse.pages()).ToList();
             var results = new
             {
                 query = query,
-                total = response.pages().Count(),
-                data = response.pages().ToList()
+                total = pagesList.Count,
+                data = pagesList
             };
             
-            _logger.LogDebug("Pages search returned {Total} results", results.total);
             return JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -330,14 +332,16 @@ public class BookStackMcpTools
             var args = new SearchArgs(query, count, page);
             var response = await _client.SearchAsync(args);
             
+            // Cast to dynamic to access properties
+            dynamic dynamicResponse = response;
+            var shelvesList = ((IEnumerable<dynamic>)dynamicResponse.shelves()).ToList();
             var results = new
             {
                 query = query,
-                total = response.shelves().Count(),
-                data = response.shelves().ToList()
+                total = shelvesList.Count,
+                data = shelvesList
             };
             
-            _logger.LogDebug("Shelves search returned {Total} results", results.total);
             return JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -357,7 +361,6 @@ public class BookStackMcpTools
             // Note: The new API's search doesn't include users, so we use list with filters
             var listing = new ListingOptions(offset: offset, count: count, filters: new[] { new Filter("name:like", $"%{query}%") });
             var response = await _client.ListUsersAsync(listing);
-            _logger.LogDebug("Users search returned {Count} results", response.data.Length);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -383,31 +386,26 @@ public class BookStackMcpTools
                 case "book":
                 case "books":
                     var bookResponse = await _client.ListBooksAsync(listing);
-                    _logger.LogDebug("Advanced search returned {Count} books", bookResponse.data.Length);
                     return JsonSerializer.Serialize(bookResponse, new JsonSerializerOptions { WriteIndented = true });
                     
                 case "chapter":
                 case "chapters":
                     var chapterResponse = await _client.ListChaptersAsync(listing);
-                    _logger.LogDebug("Advanced search returned {Count} chapters", chapterResponse.data.Length);
                     return JsonSerializer.Serialize(chapterResponse, new JsonSerializerOptions { WriteIndented = true });
                     
                 case "page":
                 case "pages":
                     var pageResponse = await _client.ListPagesAsync(listing);
-                    _logger.LogDebug("Advanced search returned {Count} pages", pageResponse.data.Length);
                     return JsonSerializer.Serialize(pageResponse, new JsonSerializerOptions { WriteIndented = true });
                     
                 case "shelf":
                 case "shelves":
                     var shelfResponse = await _client.ListShelvesAsync(listing);
-                    _logger.LogDebug("Advanced search returned {Count} shelves", shelfResponse.data.Length);
                     return JsonSerializer.Serialize(shelfResponse, new JsonSerializerOptions { WriteIndented = true });
                     
                 case "user":
                 case "users":
                     var userResponse = await _client.ListUsersAsync(listing);
-                    _logger.LogDebug("Advanced search returned {Count} users", userResponse.data.Length);
                     return JsonSerializer.Serialize(userResponse, new JsonSerializerOptions { WriteIndented = true });
                     
                 default:
