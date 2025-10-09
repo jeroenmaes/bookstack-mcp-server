@@ -32,11 +32,11 @@ public class CachedBookStackClient
             .SetSlidingExpiration(TimeSpan.FromMinutes(_cachingOptions.SlidingExpirationMinutes));
     }
 
-    public async Task<object> ListBooksAsync(ListingOptions listing)
+    public async Task<object> ListBooksAsync(ListingOptions listing, CancellationToken cancellationToken = default)
     {
         if (!_cachingOptions.Enabled)
         {
-            return await _client.ListBooksAsync(listing);
+            return await _client.ListBooksAsync(listing, cancellationToken);
         }
 
         var cacheKey = $"books_list_{listing.offset}_{listing.count}";
@@ -48,16 +48,16 @@ public class CachedBookStackClient
         }
 
         _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
-        var response = await _client.ListBooksAsync(listing);
+        var response = await _client.ListBooksAsync(listing, cancellationToken);
         _cache.Set(cacheKey, response, GetCacheEntryOptions());
         return response;
     }
 
-    public async Task<object> ReadBookAsync(int id)
+    public async Task<object> ReadBookAsync(int id, CancellationToken cancellationToken = default)
     {
         if (!_cachingOptions.Enabled)
         {
-            return await _client.ReadBookAsync(id);
+            return await _client.ReadBookAsync(id, cancellationToken);
         }
 
         var cacheKey = $"book_{id}";
@@ -69,16 +69,16 @@ public class CachedBookStackClient
         }
 
         _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
-        var book = await _client.ReadBookAsync(id);
+        var book = await _client.ReadBookAsync(id, cancellationToken);
         _cache.Set(cacheKey, book, GetCacheEntryOptions());
         return book;
     }
 
-    public async Task<object> ListChaptersAsync(ListingOptions listing)
+    public async Task<object> ListChaptersAsync(ListingOptions listing, CancellationToken cancellationToken = default)
     {
         if (!_cachingOptions.Enabled)
         {
-            return await _client.ListChaptersAsync(listing);
+            return await _client.ListChaptersAsync(listing, cancellationToken);
         }
 
         var cacheKey = $"chapters_list_{listing.offset}_{listing.count}";
@@ -90,16 +90,16 @@ public class CachedBookStackClient
         }
 
         _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
-        var response = await _client.ListChaptersAsync(listing);
+        var response = await _client.ListChaptersAsync(listing, cancellationToken);
         _cache.Set(cacheKey, response, GetCacheEntryOptions());
         return response;
     }
 
-    public async Task<object> ReadChapterAsync(int id)
+    public async Task<object> ReadChapterAsync(int id, CancellationToken cancellationToken = default)
     {
         if (!_cachingOptions.Enabled)
         {
-            return await _client.ReadChapterAsync(id);
+            return await _client.ReadChapterAsync(id, cancellationToken);
         }
 
         var cacheKey = $"chapter_{id}";
@@ -111,16 +111,16 @@ public class CachedBookStackClient
         }
 
         _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
-        var chapter = await _client.ReadChapterAsync(id);
+        var chapter = await _client.ReadChapterAsync(id, cancellationToken);
         _cache.Set(cacheKey, chapter, GetCacheEntryOptions());
         return chapter;
     }
 
-    public async Task<object> ListPagesAsync(ListingOptions listing)
+    public async Task<object> ListPagesAsync(ListingOptions listing, CancellationToken cancellationToken = default)
     {
         if (!_cachingOptions.Enabled)
         {
-            return await _client.ListPagesAsync(listing);
+            return await _client.ListPagesAsync(listing, cancellationToken);
         }
 
         var cacheKey = $"pages_list_{listing.offset}_{listing.count}";
@@ -132,16 +132,16 @@ public class CachedBookStackClient
         }
 
         _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
-        var response = await _client.ListPagesAsync(listing);
+        var response = await _client.ListPagesAsync(listing, cancellationToken);
         _cache.Set(cacheKey, response, GetCacheEntryOptions());
         return response;
     }
 
-    public async Task<object> ReadPageAsync(int id)
+    public async Task<object> ReadPageAsync(int id, CancellationToken cancellationToken = default)
     {
         if (!_cachingOptions.Enabled)
         {
-            return await _client.ReadPageAsync(id);
+            return await _client.ReadPageAsync(id, cancellationToken);
         }
 
         var cacheKey = $"page_{id}";
@@ -153,16 +153,16 @@ public class CachedBookStackClient
         }
 
         _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
-        var page = await _client.ReadPageAsync(id);
+        var page = await _client.ReadPageAsync(id, cancellationToken);
         _cache.Set(cacheKey, page, GetCacheEntryOptions());
         return page;
     }
 
-    public async Task<object> ListShelvesAsync(ListingOptions listing)
+    public async Task<object> ListShelvesAsync(ListingOptions listing, CancellationToken cancellationToken = default)
     {
         if (!_cachingOptions.Enabled)
         {
-            return await _client.ListShelvesAsync(listing);
+            return await _client.ListShelvesAsync(listing, cancellationToken);
         }
 
         var cacheKey = $"shelves_list_{listing.offset}_{listing.count}";
@@ -174,16 +174,16 @@ public class CachedBookStackClient
         }
 
         _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
-        var response = await _client.ListShelvesAsync(listing);
+        var response = await _client.ListShelvesAsync(listing, cancellationToken);
         _cache.Set(cacheKey, response, GetCacheEntryOptions());
         return response;
     }
 
-    public async Task<object> ReadShelfAsync(int id)
+    public async Task<object> ReadShelfAsync(int id, CancellationToken cancellationToken = default)
     {
         if (!_cachingOptions.Enabled)
         {
-            return await _client.ReadShelfAsync(id);
+            return await _client.ReadShelfAsync(id, cancellationToken);
         }
 
         var cacheKey = $"shelf_{id}";
@@ -195,16 +195,16 @@ public class CachedBookStackClient
         }
 
         _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
-        var shelf = await _client.ReadShelfAsync(id);
+        var shelf = await _client.ReadShelfAsync(id, cancellationToken);
         _cache.Set(cacheKey, shelf, GetCacheEntryOptions());
         return shelf;
     }
 
-    public async Task<object> ListUsersAsync(ListingOptions listing)
+    public async Task<object> ListUsersAsync(ListingOptions listing, CancellationToken cancellationToken = default)
     {
         if (!_cachingOptions.Enabled)
         {
-            return await _client.ListUsersAsync(listing);
+            return await _client.ListUsersAsync(listing, cancellationToken);
         }
 
         var cacheKey = $"users_list_{listing.offset}_{listing.count}";
@@ -216,16 +216,16 @@ public class CachedBookStackClient
         }
 
         _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
-        var response = await _client.ListUsersAsync(listing);
+        var response = await _client.ListUsersAsync(listing, cancellationToken);
         _cache.Set(cacheKey, response, GetCacheEntryOptions());
         return response;
     }
 
-    public async Task<object> ReadUserAsync(int id)
+    public async Task<object> ReadUserAsync(int id, CancellationToken cancellationToken = default)
     {
         if (!_cachingOptions.Enabled)
         {
-            return await _client.ReadUserAsync(id);
+            return await _client.ReadUserAsync(id, cancellationToken);
         }
 
         var cacheKey = $"user_{id}";
@@ -237,16 +237,16 @@ public class CachedBookStackClient
         }
 
         _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
-        var user = await _client.ReadUserAsync(id);
+        var user = await _client.ReadUserAsync(id, cancellationToken);
         _cache.Set(cacheKey, user, GetCacheEntryOptions());
         return user;
     }
 
-    public async Task<object> SearchAsync(SearchArgs args)
+    public async Task<object> SearchAsync(SearchArgs args, CancellationToken cancellationToken = default)
     {
         if (!_cachingOptions.Enabled)
         {
-            return await _client.SearchAsync(args);
+            return await _client.SearchAsync(args, cancellationToken);
         }
 
         var cacheKey = $"search_{args.query}_{args.count}_{args.page}";
@@ -258,7 +258,7 @@ public class CachedBookStackClient
         }
 
         _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
-        var response = await _client.SearchAsync(args);
+        var response = await _client.SearchAsync(args, cancellationToken);
         _cache.Set(cacheKey, response, GetCacheEntryOptions());
         return response;
     }
