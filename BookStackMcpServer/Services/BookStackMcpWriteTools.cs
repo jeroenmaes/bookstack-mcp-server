@@ -20,13 +20,13 @@ public class BookStackMcpWriteTools
 
     [Description("Create a new book")]
     [McpServerTool]
-    public async Task<string> CreateBookAsync(string name, string? description = null)
+    public async Task<string> CreateBookAsync(string name, string? description = null, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Creating book with name='{BookName}'", name);
             var args = new CreateBookArgs(name, description);
-            var result = await _client.CreateBookAsync(args);
+            var result = await _client.CreateBookAsync(args, imgPath: null, imgName: null, cancelToken: cancellationToken);
             _logger.LogInformation("Book created successfully with ID={BookId}", result.id);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
@@ -39,12 +39,12 @@ public class BookStackMcpWriteTools
     
     [Description("Delete a book")]
     [McpServerTool]
-    public async Task<string> DeleteBookAsync(int id)
+    public async Task<string> DeleteBookAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Deleting book with ID={BookId}", id);
-            await _client.DeleteBookAsync(id);
+            await _client.DeleteBookAsync(id, cancellationToken);
             _logger.LogInformation("Book deleted successfully with ID={BookId}", id);
             return JsonSerializer.Serialize(new { success = true }, new JsonSerializerOptions { WriteIndented = true });
         }
@@ -57,13 +57,13 @@ public class BookStackMcpWriteTools
 
     [Description("Create a new chapter")]
     [McpServerTool]
-    public async Task<string> CreateChapterAsync(string name, int bookId, string? description = null, int priority = 0)
+    public async Task<string> CreateChapterAsync(string name, int bookId, string? description = null, int priority = 0, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Creating chapter with name='{ChapterName}', bookId={BookId}", name, bookId);
             var args = new CreateChapterArgs(bookId, name, description, priority: priority);
-            var result = await _client.CreateChapterAsync(args);
+            var result = await _client.CreateChapterAsync(args, cancellationToken);
             _logger.LogInformation("Chapter created successfully with ID={ChapterId}", result.id);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
@@ -76,12 +76,12 @@ public class BookStackMcpWriteTools
     
     [Description("Delete a chapter")]
     [McpServerTool]
-    public async Task<string> DeleteChapterAsync(int id)
+    public async Task<string> DeleteChapterAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Deleting chapter with ID={ChapterId}", id);
-            await _client.DeleteChapterAsync(id);
+            await _client.DeleteChapterAsync(id, cancellationToken);
             _logger.LogInformation("Chapter deleted successfully with ID={ChapterId}", id);
             return JsonSerializer.Serialize(new { success = true }, new JsonSerializerOptions { WriteIndented = true });
         }
@@ -94,13 +94,13 @@ public class BookStackMcpWriteTools
 
     [Description("Create a new page")]
     [McpServerTool]
-    public async Task<string> CreatePageAsync(string name, string content, int? bookId = null, int? chapterId = null)
+    public async Task<string> CreatePageAsync(string name, string content, int? bookId = null, int? chapterId = null, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Creating page with name='{PageName}', bookId={BookId}, chapterId={ChapterId}", name, bookId, chapterId);
             var args = new CreatePageArgs(name, bookId, chapterId, html: content);
-            var result = await _client.CreatePageAsync(args);
+            var result = await _client.CreatePageAsync(args, cancellationToken);
             _logger.LogInformation("Page created successfully with ID={PageId}", result.id);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
@@ -113,12 +113,12 @@ public class BookStackMcpWriteTools
     
     [Description("Delete a page")]
     [McpServerTool]
-    public async Task<string> DeletePageAsync(int id)
+    public async Task<string> DeletePageAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Deleting page with ID={PageId}", id);
-            await _client.DeletePageAsync(id);
+            await _client.DeletePageAsync(id, cancellationToken);
             _logger.LogInformation("Page deleted successfully with ID={PageId}", id);
             return JsonSerializer.Serialize(new { success = true }, new JsonSerializerOptions { WriteIndented = true });
         }
@@ -131,13 +131,13 @@ public class BookStackMcpWriteTools
 
     [Description("Create a new shelf")]
     [McpServerTool]
-    public async Task<string> CreateShelfAsync(string name, string? description = null)
+    public async Task<string> CreateShelfAsync(string name, string? description = null, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Creating shelf with name='{ShelfName}'", name);
             var args = new CreateShelfArgs(name, description);
-            var result = await _client.CreateShelfAsync(args);
+            var result = await _client.CreateShelfAsync(args, imgPath: null, imgName: null, cancelToken: cancellationToken);
             _logger.LogInformation("Shelf created successfully with ID={ShelfId}", result.id);
             return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
         }
@@ -150,12 +150,12 @@ public class BookStackMcpWriteTools
     
     [Description("Delete a shelf")]
     [McpServerTool]
-    public async Task<string> DeleteShelfAsync(int id)
+    public async Task<string> DeleteShelfAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Deleting shelf with ID={ShelfId}", id);
-            await _client.DeleteShelfAsync(id);
+            await _client.DeleteShelfAsync(id, cancellationToken);
             _logger.LogInformation("Shelf deleted successfully with ID={ShelfId}", id);
             return JsonSerializer.Serialize(new { success = true }, new JsonSerializerOptions { WriteIndented = true });
         }

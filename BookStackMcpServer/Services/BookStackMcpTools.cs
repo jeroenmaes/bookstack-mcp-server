@@ -21,13 +21,13 @@ public class BookStackMcpTools
     // Books management - simplified version
     [Description("List all books")]
     [McpServerTool]
-    public async Task<string> ListBooksAsync(int offset = 0, int count = 500)
+    public async Task<string> ListBooksAsync(int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Listing books with offset={Offset}, count={Count}", offset, count);
             var listing = new ListingOptions(offset: offset, count: count);
-            var response = await _client.ListBooksAsync(listing);
+            var response = await _client.ListBooksAsync(listing, cancellationToken);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -39,12 +39,12 @@ public class BookStackMcpTools
     
     [Description("Get book details by ID")]
     [McpServerTool]
-    public async Task<string> GetBookAsync(int id)
+    public async Task<string> GetBookAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Getting book with ID={BookId}", id);
-            var book = await _client.ReadBookAsync(id);
+            var book = await _client.ReadBookAsync(id, cancellationToken);
             return JsonSerializer.Serialize(book, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -57,13 +57,13 @@ public class BookStackMcpTools
     // Chapters management - simplified version
     [Description("List all chapters")]
     [McpServerTool]
-    public async Task<string> ListChaptersAsync(int offset = 0, int count = 500)
+    public async Task<string> ListChaptersAsync(int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Listing chapters with offset={Offset}, count={Count}", offset, count);
             var listing = new ListingOptions(offset: offset, count: count);
-            var response = await _client.ListChaptersAsync(listing);
+            var response = await _client.ListChaptersAsync(listing, cancellationToken);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -75,12 +75,12 @@ public class BookStackMcpTools
     
     [Description("Get chapter details by ID")]
     [McpServerTool]
-    public async Task<string> GetChapterAsync(int id)
+    public async Task<string> GetChapterAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Getting chapter with ID={ChapterId}", id);
-            var chapter = await _client.ReadChapterAsync(id);
+            var chapter = await _client.ReadChapterAsync(id, cancellationToken);
             return JsonSerializer.Serialize(chapter, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -93,13 +93,13 @@ public class BookStackMcpTools
     // Pages management - simplified version
     [Description("List all pages")]
     [McpServerTool]
-    public async Task<string> ListPagesAsync(int offset = 0, int count = 500)
+    public async Task<string> ListPagesAsync(int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Listing pages with offset={Offset}, count={Count}", offset, count);
             var listing = new ListingOptions(offset: offset, count: count);
-            var response = await _client.ListPagesAsync(listing);
+            var response = await _client.ListPagesAsync(listing, cancellationToken);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -111,12 +111,12 @@ public class BookStackMcpTools
     
     [Description("Get page details by ID")]
     [McpServerTool]
-    public async Task<string> GetPageAsync(int id)
+    public async Task<string> GetPageAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Getting page with ID={PageId}", id);
-            var page = await _client.ReadPageAsync(id);
+            var page = await _client.ReadPageAsync(id, cancellationToken);
             return JsonSerializer.Serialize(page, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -129,13 +129,13 @@ public class BookStackMcpTools
     // Shelves management - simplified version
     [Description("List all shelves")]
     [McpServerTool]
-    public async Task<string> ListShelvesAsync(int offset = 0, int count = 500)
+    public async Task<string> ListShelvesAsync(int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Listing shelves with offset={Offset}, count={Count}", offset, count);
             var listing = new ListingOptions(offset: offset, count: count);
-            var response = await _client.ListShelvesAsync(listing);
+            var response = await _client.ListShelvesAsync(listing, cancellationToken);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -147,12 +147,12 @@ public class BookStackMcpTools
     
     [Description("Get shelf details by ID")]
     [McpServerTool]
-    public async Task<string> GetShelfAsync(int id)
+    public async Task<string> GetShelfAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Getting shelf with ID={ShelfId}", id);
-            var shelf = await _client.ReadShelfAsync(id);
+            var shelf = await _client.ReadShelfAsync(id, cancellationToken);
             return JsonSerializer.Serialize(shelf, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -165,13 +165,13 @@ public class BookStackMcpTools
     // Users management - simplified version
     [Description("List all users")]
     [McpServerTool]
-    public async Task<string> ListUsersAsync(int offset = 0, int count = 500)
+    public async Task<string> ListUsersAsync(int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Listing users with offset={Offset}, count={Count}", offset, count);
             var listing = new ListingOptions(offset: offset, count: count);
-            var response = await _client.ListUsersAsync(listing);
+            var response = await _client.ListUsersAsync(listing, cancellationToken);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -183,12 +183,12 @@ public class BookStackMcpTools
     
     [Description("Get user details by ID")]
     [McpServerTool]
-    public async Task<string> GetUserAsync(int id)
+    public async Task<string> GetUserAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Getting user with ID={UserId}", id);
-            var user = await _client.ReadUserAsync(id);
+            var user = await _client.ReadUserAsync(id, cancellationToken);
             return JsonSerializer.Serialize(user, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -201,14 +201,14 @@ public class BookStackMcpTools
     // Search functionality
     [Description("Search across all BookStack content (books, chapters, pages)")]
     [McpServerTool]
-    public async Task<string> SearchAllAsync(string query, int offset = 0, int count = 500)
+    public async Task<string> SearchAllAsync(string query, int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Searching all content with query='{Query}', offset={Offset}, count={Count}", query, offset, count);
             var page = offset / count + 1;
             var args = new SearchArgs(query, count, page);
-            var response = await _client.SearchAsync(args);
+            var response = await _client.SearchAsync(args, cancellationToken);
             
             // Cast to dynamic to access properties
             dynamic dynamicResponse = response;
@@ -233,14 +233,14 @@ public class BookStackMcpTools
 
     [Description("Search for books by name or description")]
     [McpServerTool]
-    public async Task<string> SearchBooksAsync(string query, int offset = 0, int count = 500)
+    public async Task<string> SearchBooksAsync(string query, int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Searching books with query='{Query}', offset={Offset}, count={Count}", query, offset, count);
             var page = offset / count + 1;
             var args = new SearchArgs(query, count, page);
-            var response = await _client.SearchAsync(args);
+            var response = await _client.SearchAsync(args, cancellationToken);
             
             // Cast to dynamic to access properties
             dynamic dynamicResponse = response;
@@ -263,14 +263,14 @@ public class BookStackMcpTools
 
     [Description("Search for chapters by name or description")]
     [McpServerTool]
-    public async Task<string> SearchChaptersAsync(string query, int offset = 0, int count = 500)
+    public async Task<string> SearchChaptersAsync(string query, int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Searching chapters with query='{Query}', offset={Offset}, count={Count}", query, offset, count);
             var page = offset / count + 1;
             var args = new SearchArgs(query, count, page);
-            var response = await _client.SearchAsync(args);
+            var response = await _client.SearchAsync(args, cancellationToken);
             
             // Cast to dynamic to access properties
             dynamic dynamicResponse = response;
@@ -293,14 +293,14 @@ public class BookStackMcpTools
 
     [Description("Search for pages by name or content")]
     [McpServerTool]
-    public async Task<string> SearchPagesAsync(string query, int offset = 0, int count = 500)
+    public async Task<string> SearchPagesAsync(string query, int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Searching pages with query='{Query}', offset={Offset}, count={Count}", query, offset, count);
             var page = offset / count + 1;
             var args = new SearchArgs(query, count, page);
-            var response = await _client.SearchAsync(args);
+            var response = await _client.SearchAsync(args, cancellationToken);
             
             // Cast to dynamic to access properties
             dynamic dynamicResponse = response;
@@ -323,14 +323,14 @@ public class BookStackMcpTools
 
     [Description("Search for shelves by name or description")]
     [McpServerTool]
-    public async Task<string> SearchShelvesAsync(string query, int offset = 0, int count = 500)
+    public async Task<string> SearchShelvesAsync(string query, int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Searching shelves with query='{Query}', offset={Offset}, count={Count}", query, offset, count);
             var page = offset / count + 1;
             var args = new SearchArgs(query, count, page);
-            var response = await _client.SearchAsync(args);
+            var response = await _client.SearchAsync(args, cancellationToken);
             
             // Cast to dynamic to access properties
             dynamic dynamicResponse = response;
@@ -353,14 +353,14 @@ public class BookStackMcpTools
 
     [Description("Search for users by name or email")]
     [McpServerTool]
-    public async Task<string> SearchUsersAsync(string query, int offset = 0, int count = 500)
+    public async Task<string> SearchUsersAsync(string query, int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Searching users with query='{Query}', offset={Offset}, count={Count}", query, offset, count);
             // Note: The new API's search doesn't include users, so we use list with filters
             var listing = new ListingOptions(offset: offset, count: count, filters: new[] { new Filter("name:like", $"%{query}%") });
-            var response = await _client.ListUsersAsync(listing);
+            var response = await _client.ListUsersAsync(listing, cancellationToken);
             return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
@@ -372,7 +372,7 @@ public class BookStackMcpTools
 
     [Description("Advanced search with custom filters")]
     [McpServerTool]
-    public async Task<string> AdvancedSearchAsync(string entityType, string field, string value, string operatorType = "like", int offset = 0, int count = 500)
+    public async Task<string> AdvancedSearchAsync(string entityType, string field, string value, string operatorType = "like", int offset = 0, int count = 500, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -385,27 +385,27 @@ public class BookStackMcpTools
             {
                 case "book":
                 case "books":
-                    var bookResponse = await _client.ListBooksAsync(listing);
+                    var bookResponse = await _client.ListBooksAsync(listing, cancellationToken);
                     return JsonSerializer.Serialize(bookResponse, new JsonSerializerOptions { WriteIndented = true });
                     
                 case "chapter":
                 case "chapters":
-                    var chapterResponse = await _client.ListChaptersAsync(listing);
+                    var chapterResponse = await _client.ListChaptersAsync(listing, cancellationToken);
                     return JsonSerializer.Serialize(chapterResponse, new JsonSerializerOptions { WriteIndented = true });
                     
                 case "page":
                 case "pages":
-                    var pageResponse = await _client.ListPagesAsync(listing);
+                    var pageResponse = await _client.ListPagesAsync(listing, cancellationToken);
                     return JsonSerializer.Serialize(pageResponse, new JsonSerializerOptions { WriteIndented = true });
                     
                 case "shelf":
                 case "shelves":
-                    var shelfResponse = await _client.ListShelvesAsync(listing);
+                    var shelfResponse = await _client.ListShelvesAsync(listing, cancellationToken);
                     return JsonSerializer.Serialize(shelfResponse, new JsonSerializerOptions { WriteIndented = true });
                     
                 case "user":
                 case "users":
-                    var userResponse = await _client.ListUsersAsync(listing);
+                    var userResponse = await _client.ListUsersAsync(listing, cancellationToken);
                     return JsonSerializer.Serialize(userResponse, new JsonSerializerOptions { WriteIndented = true });
                     
                 default:
