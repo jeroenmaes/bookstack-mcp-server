@@ -23,4 +23,7 @@ COPY --from=publish /app/publish .
 # Set environment variables for ASP.NET Core
 #ENV ASPNETCORE_URLS=http://+:5230
 
+# Use non-root user
+USER app
+
 ENTRYPOINT ["dotnet", "BookStackMcpServer.dll"]
