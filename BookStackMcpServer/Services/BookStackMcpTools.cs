@@ -206,20 +206,26 @@ public class BookStackMcpTools
         try
         {
             _logger.LogInformation("Searching all content with query='{Query}', offset={Offset}, count={Count}", query, offset, count);
-            var page = offset / count + 1;
-            var args = new SearchArgs(query, count, page);
+            var args = new SearchArgs(query, null, null);
             var response = await _client.SearchAsync(args, cancellationToken);
             
             // Cast to dynamic to access properties
             dynamic dynamicResponse = response;
+            var allBooks = ((IEnumerable<dynamic>)dynamicResponse.books()).ToList();
+            var allChapters = ((IEnumerable<dynamic>)dynamicResponse.chapters()).ToList();
+            var allPages = ((IEnumerable<dynamic>)dynamicResponse.pages()).ToList();
+            var allShelves = ((IEnumerable<dynamic>)dynamicResponse.shelves()).ToList();
+            
+            var totalResults = allBooks.Count + allChapters.Count + allPages.Count + allShelves.Count;
+            
             var results = new
             {
                 query = query,
-                total = dynamicResponse.total,
-                books = ((IEnumerable<dynamic>)dynamicResponse.books()).ToList(),
-                chapters = ((IEnumerable<dynamic>)dynamicResponse.chapters()).ToList(),
-                pages = ((IEnumerable<dynamic>)dynamicResponse.pages()).ToList(),
-                shelves = ((IEnumerable<dynamic>)dynamicResponse.shelves()).ToList()
+                total = totalResults,
+                books = allBooks.Skip(offset).Take(count).ToList(),
+                chapters = allChapters.Skip(offset).Take(count).ToList(),
+                pages = allPages.Skip(offset).Take(count).ToList(),
+                shelves = allShelves.Skip(offset).Take(count).ToList()
             };
             
             return JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
@@ -238,17 +244,16 @@ public class BookStackMcpTools
         try
         {
             _logger.LogInformation("Searching books with query='{Query}', offset={Offset}, count={Count}", query, offset, count);
-            var page = offset / count + 1;
-            var args = new SearchArgs(query, count, page);
+            var args = new SearchArgs(query, null, null);
             var response = await _client.SearchAsync(args, cancellationToken);
             
             // Cast to dynamic to access properties
             dynamic dynamicResponse = response;
-            var booksList = ((IEnumerable<dynamic>)dynamicResponse.books()).ToList();
+            var booksList = ((IEnumerable<dynamic>)dynamicResponse.books()).Skip(offset).Take(count).ToList();
             var results = new
             {
                 query = query,
-                total = booksList.Count,
+                total = ((IEnumerable<dynamic>)dynamicResponse.books()).Count(),
                 data = booksList
             };
             
@@ -268,17 +273,16 @@ public class BookStackMcpTools
         try
         {
             _logger.LogInformation("Searching chapters with query='{Query}', offset={Offset}, count={Count}", query, offset, count);
-            var page = offset / count + 1;
-            var args = new SearchArgs(query, count, page);
+            var args = new SearchArgs(query, null, null);
             var response = await _client.SearchAsync(args, cancellationToken);
             
             // Cast to dynamic to access properties
             dynamic dynamicResponse = response;
-            var chaptersList = ((IEnumerable<dynamic>)dynamicResponse.chapters()).ToList();
+            var chaptersList = ((IEnumerable<dynamic>)dynamicResponse.chapters()).Skip(offset).Take(count).ToList();
             var results = new
             {
                 query = query,
-                total = chaptersList.Count,
+                total = ((IEnumerable<dynamic>)dynamicResponse.chapters()).Count(),
                 data = chaptersList
             };
             
@@ -298,17 +302,16 @@ public class BookStackMcpTools
         try
         {
             _logger.LogInformation("Searching pages with query='{Query}', offset={Offset}, count={Count}", query, offset, count);
-            var page = offset / count + 1;
-            var args = new SearchArgs(query, count, page);
+            var args = new SearchArgs(query, null, null);
             var response = await _client.SearchAsync(args, cancellationToken);
             
             // Cast to dynamic to access properties
             dynamic dynamicResponse = response;
-            var pagesList = ((IEnumerable<dynamic>)dynamicResponse.pages()).ToList();
+            var pagesList = ((IEnumerable<dynamic>)dynamicResponse.pages()).Skip(offset).Take(count).ToList();
             var results = new
             {
                 query = query,
-                total = pagesList.Count,
+                total = ((IEnumerable<dynamic>)dynamicResponse.pages()).Count(),
                 data = pagesList
             };
             
@@ -328,17 +331,16 @@ public class BookStackMcpTools
         try
         {
             _logger.LogInformation("Searching shelves with query='{Query}', offset={Offset}, count={Count}", query, offset, count);
-            var page = offset / count + 1;
-            var args = new SearchArgs(query, count, page);
+            var args = new SearchArgs(query, null, null);
             var response = await _client.SearchAsync(args, cancellationToken);
             
             // Cast to dynamic to access properties
             dynamic dynamicResponse = response;
-            var shelvesList = ((IEnumerable<dynamic>)dynamicResponse.shelves()).ToList();
+            var shelvesList = ((IEnumerable<dynamic>)dynamicResponse.shelves()).Skip(offset).Take(count).ToList();
             var results = new
             {
                 query = query,
-                total = shelvesList.Count,
+                total = ((IEnumerable<dynamic>)dynamicResponse.shelves()).Count(),
                 data = shelvesList
             };
             
