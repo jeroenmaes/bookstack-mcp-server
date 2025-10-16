@@ -50,7 +50,7 @@ This MCP server implements tools for all major BookStack API endpoints:
 ### Prerequisites
 - .NET 9 SDK
 - BookStack instance with API access enabled
-- BookStack API token credentials
+- BookStack API token credentials (Token ID and Token Secret)
 
 ### Configuration
 
@@ -60,13 +60,11 @@ git clone https://github.com/jeroenmaes/dotnet-bookstack-mcp-server.git
 cd dotnet-bookstack-mcp-server
 ```
 
-2. Configure your BookStack connection in `BookStackMcpServer/appsettings.json`:
+2. Configure your BookStack base URL in `BookStackMcpServer/appsettings.json`:
 ```json
 {
   "BookStack": {
-    "BaseUrl": "https://your-bookstack-instance.com",
-    "TokenId": "your-token-id",
-    "TokenSecret": "your-token-secret"
+    "BaseUrl": "https://your-bookstack-instance.com"
   }
 }
 ```
@@ -75,6 +73,23 @@ cd dotnet-bookstack-mcp-server
 ```bash
 cd BookStackMcpServer
 dotnet run
+```
+
+### Authentication
+
+**Important:** This MCP server uses per-request authentication. Each request must include BookStack API credentials in HTTP headers:
+
+- `X-BookStack-Token-Id`: Your BookStack API Token ID
+- `X-BookStack-Token-Secret`: Your BookStack API Token Secret
+
+This design allows multiple users to use the same MCP server instance with their own BookStack credentials. The server validates token format according to BookStack specifications:
+- Token ID: 10-100 alphanumeric characters
+- Token Secret: 20-200 alphanumeric characters
+
+Example request headers:
+```
+X-BookStack-Token-Id: your-token-id-here
+X-BookStack-Token-Secret: your-token-secret-here
 ```
 
 ### Docker Deployment
@@ -88,17 +103,17 @@ The application includes Docker support for easy deployment:
 cp .env.example .env
 ```
 
-2. Edit `.env` file with your BookStack configuration:
+2. Edit `.env` file with your BookStack base URL:
 ```bash
 BOOKSTACK_BASE_URL=https://your-bookstack-instance.com
-BOOKSTACK_TOKEN_ID=your-token-id
-BOOKSTACK_TOKEN_SECRET=your-token-secret
 ```
 
 3. Build and run with Docker Compose:
 ```bash
 docker-compose up -d
 ```
+
+**Note:** When using Docker, you still need to provide BookStack credentials in request headers for each API call.
 
 #### Using Docker directly
 
@@ -112,8 +127,6 @@ docker build -t bookstack-mcp-server .
 docker run -d \
   -p 8080:8080 \
   -e BookStack__BaseUrl=https://your-bookstack-instance.com \
-  -e BookStack__TokenId=your-token-id \
-  -e BookStack__TokenSecret=your-token-secret \
   --name bookstack-mcp-server \
   bookstack-mcp-server
 ```
@@ -137,6 +150,14 @@ docker pull ghcr.io/jeroenmaes/dotnet-bookstack-mcp-server:v1.0.0
 
 The server implements the Model Context Protocol using the official C# SDK. It exposes an MCP endpoint that can be used by MCP-compatible clients to interact with BookStack.
 
+### Authentication
+
+All MCP requests must include BookStack API credentials in HTTP headers:
+- `X-BookStack-Token-Id`: Your BookStack API Token ID
+- `X-BookStack-Token-Secret`: Your BookStack API Token Secret
+
+The server validates these credentials on each request and uses them to authenticate with your BookStack instance. This allows multiple users to safely share the same MCP server while using their own BookStack credentials.
+
 ### Read-Only Mode (Default)
 
 By default, the server operates in read-only mode for safety. Write operations (`create_*` and `delete_*` tools) are disabled unless explicitly enabled.
@@ -148,8 +169,6 @@ In `appsettings.json`:
 {
   "BookStack": {
     "BaseUrl": "https://your-bookstack-instance.com",
-    "TokenId": "your-token-id",
-    "TokenSecret": "your-token-secret",
     "EnableWrite": true
   }
 }
@@ -165,8 +184,6 @@ BookStack__EnableWrite=true
 docker run -d \
   -p 8080:8080 \
   -e BookStack__BaseUrl=https://your-bookstack-instance.com \
-  -e BookStack__TokenId=your-token-id \
-  -e BookStack__TokenSecret=your-token-secret \
   -e BookStack__EnableWrite=true \
   --name bookstack-mcp-server \
   bookstack-mcp-server
@@ -176,46 +193,7 @@ docker run -d \
 - When `EnableWrite` is `false` (default), only read operations (list, get, search) are available
 - When `EnableWrite` is `true`, create and delete operations become available
 - This provides an extra layer of protection against accidental modifications to your BookStack content
-
-### Optional Security
-
-The server supports optional HTTP header-based authentication for the MCP endpoints. When configured, all requests to the MCP endpoint must include the specified authentication header with the correct value.
-
-**Configuration:**
-
-In `appsettings.json`:
-```json
-{
-  "Security": {
-    "AuthHeaderName": "X-MCP-Auth",
-    "AuthHeaderValue": "your-secret-token"
-  }
-}
-```
-
-Or via environment variables:
-```bash
-Security__AuthHeaderName=X-MCP-Auth
-Security__AuthHeaderValue=your-secret-token
-```
-
-**Docker example:**
-```bash
-docker run -d \
-  -p 8080:8080 \
-  -e BookStack__BaseUrl=https://your-bookstack-instance.com \
-  -e BookStack__TokenId=your-token-id \
-  -e BookStack__TokenSecret=your-token-secret \
-  -e Security__AuthHeaderName=X-MCP-Auth \
-  -e Security__AuthHeaderValue=your-secret-token \
-  --name bookstack-mcp-server \
-  bookstack-mcp-server
-```
-
-**Notes:**
-- If `AuthHeaderName` or `AuthHeaderValue` is not configured, security is disabled and all requests are allowed
-- Health check endpoints (`/health`, `/health/live`, `/health/ready`) are not protected by this security mechanism
-- When enabled, clients must send the configured header with every MCP request
+- Write permissions are still subject to the BookStack API token's actual permissions
 
 ### HTTP Throttling
 
