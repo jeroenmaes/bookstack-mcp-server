@@ -77,20 +77,51 @@ dotnet run
 
 ### Authentication
 
-**Important:** This MCP server uses per-request authentication. Each request must include BookStack API credentials in HTTP headers:
+**Important:** This MCP server uses per-request authentication. Each request must include BookStack API credentials in HTTP headers.
 
-- `X-BookStack-Token-Id`: Your BookStack API Token ID
-- `X-BookStack-Token-Secret`: Your BookStack API Token Secret
+You can provide credentials in one of two ways:
 
-This design allows multiple users to use the same MCP server instance with their own BookStack credentials. The server validates token format according to BookStack specifications:
+#### Method 1: Bearer Token (Recommended)
+
+Use the standard `Authorization` header with a Bearer token containing your credentials separated by a colon:
+
+```bash
+Authorization: Bearer <token_id>:<token_secret>
+```
+
+Example:
+```bash
+curl -X POST http://server:5230/mcp/v1 \
+  -H "Authorization: Bearer your-token-id:your-token-secret" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+```
+
+#### Method 2: Individual Headers
+
+Alternatively, use separate headers for token ID and secret:
+
+```bash
+X-BookStack-Token-Id: your-token-id
+X-BookStack-Token-Secret: your-token-secret
+```
+
+Example:
+```bash
+curl -X POST http://server:5230/mcp/v1 \
+  -H "X-BookStack-Token-Id: your-token-id" \
+  -H "X-BookStack-Token-Secret: your-token-secret" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+```
+
+**Token Format Validation:**
+
+The server validates token format according to BookStack specifications:
 - Token ID: 10-100 alphanumeric characters
 - Token Secret: 20-200 alphanumeric characters
 
-Example request headers:
-```
-X-BookStack-Token-Id: your-token-id-here
-X-BookStack-Token-Secret: your-token-secret-here
-```
+This design allows multiple users to use the same MCP server instance with their own BookStack credentials.
 
 ### Docker Deployment
 
@@ -152,9 +183,18 @@ The server implements the Model Context Protocol using the official C# SDK. It e
 
 ### Authentication
 
-All MCP requests must include BookStack API credentials in HTTP headers:
-- `X-BookStack-Token-Id`: Your BookStack API Token ID
-- `X-BookStack-Token-Secret`: Your BookStack API Token Secret
+All MCP requests must include BookStack API credentials. You can provide them using either method:
+
+**Method 1: Bearer Token (Recommended)**
+```
+Authorization: Bearer <token_id>:<token_secret>
+```
+
+**Method 2: Individual Headers**
+```
+X-BookStack-Token-Id: <your-token-id>
+X-BookStack-Token-Secret: <your-token-secret>
+```
 
 The server validates these credentials on each request and uses them to authenticate with your BookStack instance. This allows multiple users to safely share the same MCP server while using their own BookStack credentials.
 
