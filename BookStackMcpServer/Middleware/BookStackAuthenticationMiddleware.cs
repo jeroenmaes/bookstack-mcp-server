@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 namespace BookStackMcpServer.Middleware;
 
 /// <summary>
-/// Middleware that extracts BookStack API credentials from request headers and stores them in HttpContext.Items
+/// Middleware that extracts BookStack API credentials from Authorization Bearer token and stores them in HttpContext.Items
 /// for use by the BookStack API client.
 /// </summary>
 public partial class BookStackAuthenticationMiddleware
@@ -21,8 +21,6 @@ public partial class BookStackAuthenticationMiddleware
     [GeneratedRegex(@"^[a-zA-Z0-9]{20,200}$")]
     private static partial Regex TokenSecretPattern();
 
-    public const string BookStackTokenIdHeader = "X-BookStack-Token-Id";
-    public const string BookStackTokenSecretHeader = "X-BookStack-Token-Secret";
     public const string BookStackTokenIdContextKey = "BookStack.TokenId";
     public const string BookStackTokenSecretContextKey = "BookStack.TokenSecret";
 
@@ -36,68 +34,37 @@ public partial class BookStackAuthenticationMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        string tokenIdValue;
-        string tokenSecretValue;
-
-        // Try to extract credentials from Authorization Bearer token first
-        if (context.Request.Headers.TryGetValue("Authorization", out var authHeader))
+        // Extract credentials from Authorization Bearer token
+        if (!context.Request.Headers.TryGetValue("Authorization", out var authHeader))
         {
-            var authHeaderValue = authHeader.ToString();
-            if (authHeaderValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            {
-                var bearerToken = authHeaderValue.Substring(7); // Remove "Bearer " prefix
-                var parts = bearerToken.Split(':', 2);
-                
-                if (parts.Length == 2)
-                {
-                    tokenIdValue = parts[0];
-                    tokenSecretValue = parts[1];
-                    _logger.LogDebug("BookStack credentials extracted from Authorization Bearer token");
-                }
-                else
-                {
-                    _logger.LogWarning("Invalid Bearer token format. Expected format: Bearer <token_id>:<token_secret>");
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    await context.Response.WriteAsync("Unauthorized: Invalid Bearer token format. Expected format: Bearer <token_id>:<token_secret>");
-                    return;
-                }
-            }
-            else
-            {
-                // Authorization header exists but is not Bearer type, fall through to check individual headers
-                tokenIdValue = null!;
-                tokenSecretValue = null!;
-            }
-        }
-        else
-        {
-            tokenIdValue = null!;
-            tokenSecretValue = null!;
+            _logger.LogWarning("Request missing Authorization header");
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsync("Unauthorized: Missing Authorization header. Expected format: Authorization: Bearer <token_id>:<token_secret>");
+            return;
         }
 
-        // If not found in Authorization header, try individual headers
-        if (string.IsNullOrEmpty(tokenIdValue) || string.IsNullOrEmpty(tokenSecretValue))
+        var authHeaderValue = authHeader.ToString();
+        if (!authHeaderValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
-            if (!context.Request.Headers.TryGetValue(BookStackTokenIdHeader, out var tokenId))
-            {
-                _logger.LogWarning("Request missing required authentication. Provide either Authorization Bearer token or X-BookStack-Token-Id/X-BookStack-Token-Secret headers");
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsync("Unauthorized: Missing BookStack authentication. Provide either Authorization Bearer token or X-BookStack-Token-Id/X-BookStack-Token-Secret headers");
-                return;
-            }
-
-            if (!context.Request.Headers.TryGetValue(BookStackTokenSecretHeader, out var tokenSecret))
-            {
-                _logger.LogWarning("Request missing required header: {HeaderName}", BookStackTokenSecretHeader);
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsync("Unauthorized: Missing BookStack Token Secret header");
-                return;
-            }
-
-            tokenIdValue = tokenId.ToString();
-            tokenSecretValue = tokenSecret.ToString();
-            _logger.LogDebug("BookStack credentials extracted from individual headers");
+            _logger.LogWarning("Invalid Authorization header format. Expected Bearer token");
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsync("Unauthorized: Invalid Authorization header. Expected format: Authorization: Bearer <token_id>:<token_secret>");
+            return;
         }
+
+        var bearerToken = authHeaderValue.Substring(7); // Remove "Bearer " prefix
+        var parts = bearerToken.Split(':', 2);
+        
+        if (parts.Length != 2)
+        {
+            _logger.LogWarning("Invalid Bearer token format. Expected format: Bearer <token_id>:<token_secret>");
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsync("Unauthorized: Invalid Bearer token format. Expected format: Bearer <token_id>:<token_secret>");
+            return;
+        }
+
+        var tokenIdValue = parts[0];
+        var tokenSecretValue = parts[1];
 
         // Validate token format according to BookStack specification
         if (string.IsNullOrWhiteSpace(tokenIdValue) || !TokenIdPattern().IsMatch(tokenIdValue))
@@ -120,7 +87,7 @@ public partial class BookStackAuthenticationMiddleware
         context.Items[BookStackTokenIdContextKey] = tokenIdValue;
         context.Items[BookStackTokenSecretContextKey] = tokenSecretValue;
 
-        _logger.LogDebug("BookStack credentials extracted and validated successfully");
+        _logger.LogDebug("BookStack credentials extracted and validated successfully from Bearer token");
         await _next(context);
     }
 }
