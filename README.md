@@ -93,11 +93,9 @@ curl -X POST http://server:5230/mcp/v1 \
   -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
 ```
 
-**Token Format Validation:**
+**Token Format:**
 
-The server validates token format according to BookStack specifications:
-- Token ID: 10-100 alphanumeric characters
-- Token Secret: 20-200 alphanumeric characters
+The server requires that the Bearer token contains a colon (`:`) to separate the Token ID and Token Secret. Both parts must be non-empty. The actual format and validation of the token is handled by the BookStack API itself.
 
 This design allows multiple users to use the same MCP server instance with their own BookStack credentials.
 

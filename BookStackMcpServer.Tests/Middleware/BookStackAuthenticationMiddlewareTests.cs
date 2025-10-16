@@ -92,58 +92,6 @@ public class BookStackAuthenticationMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_WhenTokenIdInvalid_Returns401()
-    {
-        // Arrange
-        var context = new DefaultHttpContext();
-        context.Response.Body = new MemoryStream();
-        context.Request.Headers["Authorization"] = "Bearer invalid!token:validtokensecret123456789012345678901234567890";
-        var nextCalled = false;
-        RequestDelegate next = (ctx) =>
-        {
-            nextCalled = true;
-            return Task.CompletedTask;
-        };
-        var middleware = new BookStackAuthenticationMiddleware(next, _loggerMock.Object);
-
-        // Act
-        await middleware.InvokeAsync(context);
-
-        // Assert
-        Assert.False(nextCalled);
-        Assert.Equal(StatusCodes.Status401Unauthorized, context.Response.StatusCode);
-        context.Response.Body.Seek(0, SeekOrigin.Begin);
-        var responseBody = new StreamReader(context.Response.Body).ReadToEnd();
-        Assert.Contains("Invalid BookStack Token ID format", responseBody);
-    }
-
-    [Fact]
-    public async Task InvokeAsync_WhenTokenSecretInvalid_Returns401()
-    {
-        // Arrange
-        var context = new DefaultHttpContext();
-        context.Response.Body = new MemoryStream();
-        context.Request.Headers["Authorization"] = "Bearer validtokenid12345678901234567890:short";
-        var nextCalled = false;
-        RequestDelegate next = (ctx) =>
-        {
-            nextCalled = true;
-            return Task.CompletedTask;
-        };
-        var middleware = new BookStackAuthenticationMiddleware(next, _loggerMock.Object);
-
-        // Act
-        await middleware.InvokeAsync(context);
-
-        // Assert
-        Assert.False(nextCalled);
-        Assert.Equal(StatusCodes.Status401Unauthorized, context.Response.StatusCode);
-        context.Response.Body.Seek(0, SeekOrigin.Begin);
-        var responseBody = new StreamReader(context.Response.Body).ReadToEnd();
-        Assert.Contains("Invalid BookStack Token Secret format", responseBody);
-    }
-
-    [Fact]
     public async Task InvokeAsync_WhenBearerTokenValid_AllowsRequest()
     {
         // Arrange
@@ -169,6 +117,32 @@ public class BookStackAuthenticationMiddlewareTests
         Assert.True(context.Items.ContainsKey(BookStackAuthenticationMiddleware.BookStackTokenSecretContextKey));
         Assert.Equal("validtokenid12345678901234567890", context.Items[BookStackAuthenticationMiddleware.BookStackTokenIdContextKey]);
         Assert.Equal("validtokensecret123456789012345678901234567890", context.Items[BookStackAuthenticationMiddleware.BookStackTokenSecretContextKey]);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WhenBearerTokenWithSpecialChars_AllowsRequest()
+    {
+        // Arrange
+        var context = new DefaultHttpContext();
+        context.Request.Headers["Authorization"] = "Bearer token-with-dashes:secret_with_underscores";
+        var nextCalled = false;
+        RequestDelegate next = (ctx) =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        };
+        var middleware = new BookStackAuthenticationMiddleware(next, _loggerMock.Object);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        Assert.True(nextCalled);
+        Assert.NotEqual(StatusCodes.Status401Unauthorized, context.Response.StatusCode);
+        
+        // Verify credentials are stored correctly
+        Assert.Equal("token-with-dashes", context.Items[BookStackAuthenticationMiddleware.BookStackTokenIdContextKey]);
+        Assert.Equal("secret_with_underscores", context.Items[BookStackAuthenticationMiddleware.BookStackTokenSecretContextKey]);
     }
 
     [Fact]
