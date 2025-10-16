@@ -18,26 +18,23 @@ public class BookStackOptionsTests
         var options = new BookStackOptions
         {
             BaseUrl = "https://example.com",
-            TokenId = "test-token-id",
-            TokenSecret = "test-token-secret"
+            EnableWrite = true
         };
 
         // Assert
         Assert.Equal("https://example.com", options.BaseUrl);
-        Assert.Equal("test-token-id", options.TokenId);
-        Assert.Equal("test-token-secret", options.TokenSecret);
+        Assert.True(options.EnableWrite);
     }
 
     [Fact]
-    public void DefaultValues_AreEmptyStrings()
+    public void DefaultValues_AreCorrect()
     {
         // Arrange
         var options = new BookStackOptions();
 
         // Assert
         Assert.Equal(string.Empty, options.BaseUrl);
-        Assert.Equal(string.Empty, options.TokenId);
-        Assert.Equal(string.Empty, options.TokenSecret);
+        Assert.False(options.EnableWrite);
     }
 
     [Fact]
@@ -57,8 +54,6 @@ public class BookStackOptionsTests
         var options = new BookStackOptions
         {
             BaseUrl = "https://example.com",
-            TokenId = "test-token-id",
-            TokenSecret = "test-token-secret",
             EnableWrite = true
         };
 

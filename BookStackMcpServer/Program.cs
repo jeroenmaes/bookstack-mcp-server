@@ -21,8 +21,6 @@ builder.Logging.AddDebug();
 // Add configuration
 builder.Services.Configure<BookStackOptions>(
     builder.Configuration.GetSection(BookStackOptions.SectionName));
-builder.Services.Configure<SecurityOptions>(
-    builder.Configuration.GetSection(SecurityOptions.SectionName));
 builder.Services.Configure<ThrottlingOptions>(
     builder.Configuration.GetSection(ThrottlingOptions.SectionName));
 builder.Services.Configure<CachingOptions>(
@@ -34,22 +32,14 @@ builder.Services.AddMemoryCache();
 // Add HttpClient factory for health checks and other HTTP requests
 builder.Services.AddHttpClient();
 
-// Add BookStack API client
-builder.Services.AddSingleton<BookStackClient>(serviceProvider =>
-{
-    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-    var bookStackOptions = configuration.GetSection(BookStackOptions.SectionName).Get<BookStackOptions>()
-        ?? throw new InvalidOperationException("BookStack configuration is required");
-    
-    // The new API requires a Uri that ends with /api/
-    var baseUrl = bookStackOptions.BaseUrl.TrimEnd('/');
-    var apiUri = new Uri($"{baseUrl}/api/");
-    
-    return new BookStackClient(apiUri, bookStackOptions.TokenId, bookStackOptions.TokenSecret);
-});
+// Add HttpContextAccessor for per-request BookStack client creation
+builder.Services.AddHttpContextAccessor();
+
+// Add BookStack client factory
+builder.Services.AddScoped<BookStackClientFactory>();
 
 // Add cached wrapper for BookStack API client
-builder.Services.AddSingleton<CachedBookStackClient>();
+builder.Services.AddScoped<CachedBookStackClient>();
 
 // Add MCP Server with HTTP transport and BookStack tools
 var bookStackOptionsForTools = builder.Configuration.GetSection(BookStackOptions.SectionName).Get<BookStackOptions>();
@@ -110,16 +100,6 @@ else
     logger.LogWarning("BookStack API configuration not found");
 }
 
-var securityOptions = app.Configuration.GetSection(SecurityOptions.SectionName).Get<SecurityOptions>();
-if (!string.IsNullOrEmpty(securityOptions?.AuthHeaderName))
-{
-    logger.LogInformation("Security enabled with header: {HeaderName}", securityOptions.AuthHeaderName);
-}
-else
-{
-    logger.LogInformation("Security not configured - all requests allowed");
-}
-
 if (bookStackOptions?.EnableWrite == true)
 {
     logger.LogInformation("Write mode enabled - Create/Delete operations available");
@@ -141,10 +121,10 @@ if (throttlingOptions.Enabled)
     );
 } 
   
-// Apply security middleware to MCP endpoints
+// Apply BookStack authentication middleware to MCP endpoints
 app.UseWhen(
     context => !context.Request.Path.StartsWithSegments("/health"),
-    appBuilder => appBuilder.UseMiddleware<McpSecurityMiddleware>()
+    appBuilder => appBuilder.UseMiddleware<BookStackAuthenticationMiddleware>()
 );
 
 // Map MCP endpoint using the SDK

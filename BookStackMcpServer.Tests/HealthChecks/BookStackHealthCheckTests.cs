@@ -24,9 +24,7 @@ public class BookStackHealthCheckTests
         // Arrange
         var options = Options.Create(new BookStackOptions
         {
-            BaseUrl = "https://example.com/",
-            TokenId = "test-id",
-            TokenSecret = "test-secret"
+            BaseUrl = "https://example.com/"
         });
 
         // Act
@@ -42,9 +40,7 @@ public class BookStackHealthCheckTests
         // Arrange
         var options = Options.Create(new BookStackOptions
         {
-            BaseUrl = "https://example.com",
-            TokenId = "test-id",
-            TokenSecret = "test-secret"
+            BaseUrl = "https://example.com"
         });
 
         // Act
