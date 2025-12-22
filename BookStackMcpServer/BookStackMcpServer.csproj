@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BookStackApiClient" Version="25.7.0-lib.2" />
+    <PackageReference Include="BookStackApiClient" Version="25.11.0-lib.2" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="0.4.0-preview.3" />
   </ItemGroup>
 

@@ -337,7 +337,7 @@ curl http://localhost:8080/health
 
 - **ASP.NET Core 10** - Web framework
 - **ModelContextProtocol.AspNetCore** (0.4.0-preview.2) - MCP server implementation
-- **BookStackApiClient** (25.7.0-lib.2) - BookStack API client library
+- **BookStackApiClient** (25.11.0-lib.2) - BookStack API client library
 
 ## License
 
