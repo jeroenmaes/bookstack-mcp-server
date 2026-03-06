@@ -12,6 +12,11 @@ public class BookStackMcpWriteTools
     private readonly BookStackClientFactory _clientFactory;
     private readonly ILogger<BookStackMcpWriteTools> _logger;
 
+    // Base64 encodes ~1.37 bytes per character; this cap ≈ 10 MB decoded
+    private const int MaxBase64ImageLength = 13_981_013;
+
+    private static readonly HashSet<string> ValidImageTypes = new(StringComparer.Ordinal) { "gallery", "drawio" };
+
     public BookStackMcpWriteTools(BookStackClientFactory clientFactory, ILogger<BookStackMcpWriteTools> logger)
     {
         _clientFactory = clientFactory;
@@ -387,6 +392,12 @@ public class BookStackMcpWriteTools
     {
         try
         {
+            if (!Uri.TryCreate(link, UriKind.Absolute, out var uri) ||
+                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            {
+                return JsonSerializer.Serialize(new { error = "Invalid link: only http and https URLs are allowed" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
             _logger.LogInformation("Creating link attachment with name='{AttachmentName}', pageId={PageId}", name, uploadedTo);
             var client = GetClient();
             var args = new CreateLinkAttachmentArgs(name, uploadedTo, link);
@@ -407,6 +418,13 @@ public class BookStackMcpWriteTools
     {
         try
         {
+            if (link is not null &&
+                (!Uri.TryCreate(link, UriKind.Absolute, out var uri) ||
+                 (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
+            {
+                return JsonSerializer.Serialize(new { error = "Invalid link: only http and https URLs are allowed" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
             _logger.LogInformation("Updating attachment with ID={AttachmentId}", id);
             var client = GetClient();
             var args = new UpdateLinkAttachmentArgs(name, uploadedTo.HasValue ? (long?)uploadedTo.Value : null, link);
@@ -509,6 +527,16 @@ public class BookStackMcpWriteTools
     {
         try
         {
+            if (!ValidImageTypes.Contains(type))
+            {
+                return JsonSerializer.Serialize(new { error = "Invalid type: must be 'gallery' or 'drawio'" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
+            if (imageBase64.Length > MaxBase64ImageLength)
+            {
+                return JsonSerializer.Serialize(new { error = "Image too large: maximum size is 10 MB" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
             _logger.LogInformation("Creating image with name='{ImageName}', type='{Type}', uploadedTo={UploadedTo}", name, type, uploadedTo);
             var client = GetClient();
             var imageBytes = Convert.FromBase64String(imageBase64);
@@ -533,6 +561,12 @@ public class BookStackMcpWriteTools
             if (name is null && string.IsNullOrEmpty(imageBase64))
             {
                 return JsonSerializer.Serialize(new { error = "At least one of name or imageBase64 must be provided" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
+            // Base64 encodes ~1.37 bytes per character; 13_981_013 chars ≈ 10 MB decoded
+            if (imageBase64 is not null && imageBase64.Length > MaxBase64ImageLength)
+            {
+                return JsonSerializer.Serialize(new { error = "Image too large: maximum size is 10 MB" }, new JsonSerializerOptions { WriteIndented = true });
             }
 
             _logger.LogInformation("Updating image with ID={ImageId}", id);

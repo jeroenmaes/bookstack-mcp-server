@@ -12,6 +12,8 @@ public class BookStackMcpTools
     private readonly CachedBookStackClient _client;
     private readonly ILogger<BookStackMcpTools> _logger;
 
+    private static readonly HashSet<string> ValidContentTypes = new(StringComparer.Ordinal) { "book", "chapter", "page", "shelf" };
+
     public BookStackMcpTools(CachedBookStackClient client, ILogger<BookStackMcpTools> logger)
     {
         _client = client;
@@ -539,6 +541,11 @@ public class BookStackMcpTools
     {
         try
         {
+            if (!ValidContentTypes.Contains(contentType))
+            {
+                return JsonSerializer.Serialize(new { error = "Invalid contentType: must be one of 'book', 'chapter', 'page', 'shelf'" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
             _logger.LogInformation("Reading permissions for contentType='{ContentType}', ID={ContentId}", contentType, id);
             var permissions = await _client.ReadContentPermissionsAsync(contentType, id, cancellationToken);
             return JsonSerializer.Serialize(permissions, new JsonSerializerOptions { WriteIndented = true });
