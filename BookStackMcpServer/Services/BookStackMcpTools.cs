@@ -421,4 +421,199 @@ public class BookStackMcpTools
             return JsonSerializer.Serialize(new { error = "Failed to perform advanced search", message = ex.Message, entityType, field }, new JsonSerializerOptions { WriteIndented = true });
         }
     }
+
+    // Roles management
+    [Description("List all roles")]
+    [McpServerTool]
+    public async Task<string> ListRolesAsync(int offset = 0, int count = 500, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Listing roles with offset={Offset}, count={Count}", offset, count);
+            var listing = new ListingOptions(offset: offset, count: count);
+            var response = await _client.ListRolesAsync(listing, cancellationToken);
+            return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to list roles with offset={Offset}, count={Count}", offset, count);
+            return JsonSerializer.Serialize(new { error = "Failed to list roles", message = ex.Message }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Get role details by ID")]
+    [McpServerTool]
+    public async Task<string> GetRoleAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Getting role with ID={RoleId}", id);
+            var role = await _client.ReadRoleAsync(id, cancellationToken);
+            return JsonSerializer.Serialize(role, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get role with ID={RoleId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to get role", message = ex.Message, roleId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    // Attachments management
+    [Description("List all attachments")]
+    [McpServerTool]
+    public async Task<string> ListAttachmentsAsync(int offset = 0, int count = 500, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Listing attachments with offset={Offset}, count={Count}", offset, count);
+            var listing = new ListingOptions(offset: offset, count: count);
+            var response = await _client.ListAttachmentsAsync(listing, cancellationToken);
+            return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to list attachments with offset={Offset}, count={Count}", offset, count);
+            return JsonSerializer.Serialize(new { error = "Failed to list attachments", message = ex.Message }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Get attachment details by ID")]
+    [McpServerTool]
+    public async Task<string> GetAttachmentAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Getting attachment with ID={AttachmentId}", id);
+            var attachment = await _client.ReadAttachmentAsync(id, cancellationToken);
+            return JsonSerializer.Serialize(attachment, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get attachment with ID={AttachmentId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to get attachment", message = ex.Message, attachmentId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    // Recycle bin management
+    [Description("List items in the recycle bin")]
+    [McpServerTool]
+    public async Task<string> ListRecycleBinAsync(int offset = 0, int count = 500, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Listing recycle bin with offset={Offset}, count={Count}", offset, count);
+            var listing = new ListingOptions(offset: offset, count: count);
+            var response = await _client.ListRecycleBinAsync(listing, cancellationToken);
+            return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to list recycle bin with offset={Offset}, count={Count}", offset, count);
+            return JsonSerializer.Serialize(new { error = "Failed to list recycle bin", message = ex.Message }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    // Audit log
+    [Description("List audit log entries")]
+    [McpServerTool]
+    public async Task<string> ListAuditLogAsync(int offset = 0, int count = 100, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Listing audit log with offset={Offset}, count={Count}", offset, count);
+            var listing = new ListingOptions(offset: offset, count: count);
+            var response = await _client.ListAuditLogAsync(listing, cancellationToken);
+            return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to list audit log with offset={Offset}, count={Count}", offset, count);
+            return JsonSerializer.Serialize(new { error = "Failed to list audit log", message = ex.Message }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    // Content permissions
+    [Description("Read content permissions for a book, chapter, page, or shelf. contentType must be one of: book, chapter, page, shelf")]
+    [McpServerTool]
+    public async Task<string> ReadContentPermissionsAsync(string contentType, int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Reading permissions for contentType='{ContentType}', ID={ContentId}", contentType, id);
+            var permissions = await _client.ReadContentPermissionsAsync(contentType, id, cancellationToken);
+            return JsonSerializer.Serialize(permissions, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to read permissions for contentType='{ContentType}', ID={ContentId}", contentType, id);
+            return JsonSerializer.Serialize(new { error = "Failed to read content permissions", message = ex.Message, contentType, contentId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    // Export tools
+    [Description("Export a book in the specified format. Supported formats: html, markdown, plaintext")]
+    [McpServerTool]
+    public async Task<string> ExportBookAsync(int id, string format = "html", CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Exporting book with ID={BookId}, format='{Format}'", id, format);
+            string content = format.ToLowerInvariant() switch
+            {
+                "markdown" or "md" => await _client.ExportBookMarkdownAsync(id, cancellationToken),
+                "plaintext" or "plain" or "text" => await _client.ExportBookPlainAsync(id, cancellationToken),
+                _ => await _client.ExportBookHtmlAsync(id, cancellationToken)
+            };
+            return JsonSerializer.Serialize(new { id, format, content }, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to export book with ID={BookId}, format='{Format}'", id, format);
+            return JsonSerializer.Serialize(new { error = "Failed to export book", message = ex.Message, bookId = id, format }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Export a chapter in the specified format. Supported formats: html, markdown, plaintext")]
+    [McpServerTool]
+    public async Task<string> ExportChapterAsync(int id, string format = "html", CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Exporting chapter with ID={ChapterId}, format='{Format}'", id, format);
+            string content = format.ToLowerInvariant() switch
+            {
+                "markdown" or "md" => await _client.ExportChapterMarkdownAsync(id, cancellationToken),
+                "plaintext" or "plain" or "text" => await _client.ExportChapterPlainAsync(id, cancellationToken),
+                _ => await _client.ExportChapterHtmlAsync(id, cancellationToken)
+            };
+            return JsonSerializer.Serialize(new { id, format, content }, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to export chapter with ID={ChapterId}, format='{Format}'", id, format);
+            return JsonSerializer.Serialize(new { error = "Failed to export chapter", message = ex.Message, chapterId = id, format }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Export a page in the specified format. Supported formats: html, markdown, plaintext")]
+    [McpServerTool]
+    public async Task<string> ExportPageAsync(int id, string format = "html", CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Exporting page with ID={PageId}, format='{Format}'", id, format);
+            string content = format.ToLowerInvariant() switch
+            {
+                "markdown" or "md" => await _client.ExportPageMarkdownAsync(id, cancellationToken),
+                "plaintext" or "plain" or "text" => await _client.ExportPagePlainAsync(id, cancellationToken),
+                _ => await _client.ExportPageHtmlAsync(id, cancellationToken)
+            };
+            return JsonSerializer.Serialize(new { id, format, content }, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to export page with ID={PageId}, format='{Format}'", id, format);
+            return JsonSerializer.Serialize(new { error = "Failed to export page", message = ex.Message, pageId = id, format }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
 }
