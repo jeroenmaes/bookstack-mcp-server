@@ -477,4 +477,50 @@ public class CachedBookStackClient
 
     public async Task<string> ExportPagePlainAsync(int id, CancellationToken cancellationToken = default)
         => await GetClient().ExportPagePlainAsync(id, cancellationToken);
+
+    public async Task<object> ListImagesAsync(ListingOptions listing, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+
+        if (!_cachingOptions.Enabled)
+        {
+            return await client.ListImagesAsync(listing, cancellationToken);
+        }
+
+        var cacheKey = $"images_list_{listing.offset}_{listing.count}";
+
+        if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
+        {
+            _logger.LogDebug("Cache hit for {CacheKey}", cacheKey);
+            return cachedResponse;
+        }
+
+        _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
+        var response = await client.ListImagesAsync(listing, cancellationToken);
+        _cache.Set(cacheKey, response, GetCacheEntryOptions());
+        return response;
+    }
+
+    public async Task<object> ReadImageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+
+        if (!_cachingOptions.Enabled)
+        {
+            return await client.ReadImageAsync(id, cancellationToken);
+        }
+
+        var cacheKey = $"image_{id}";
+
+        if (_cache.TryGetValue(cacheKey, out object? cachedImage) && cachedImage != null)
+        {
+            _logger.LogDebug("Cache hit for {CacheKey}", cacheKey);
+            return cachedImage;
+        }
+
+        _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
+        var image = await client.ReadImageAsync(id, cancellationToken);
+        _cache.Set(cacheKey, image, GetCacheEntryOptions());
+        return image;
+    }
 }

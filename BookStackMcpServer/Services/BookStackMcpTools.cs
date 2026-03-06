@@ -616,4 +616,40 @@ public class BookStackMcpTools
             return JsonSerializer.Serialize(new { error = "Failed to export page", message = ex.Message, pageId = id, format }, new JsonSerializerOptions { WriteIndented = true });
         }
     }
+
+    // Images management
+    [Description("List gallery images")]
+    [McpServerTool]
+    public async Task<string> ListImagesAsync(int offset = 0, int count = 500, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Listing images with offset={Offset}, count={Count}", offset, count);
+            var listing = new ListingOptions(offset: offset, count: count);
+            var response = await _client.ListImagesAsync(listing, cancellationToken);
+            return JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to list images with offset={Offset}, count={Count}", offset, count);
+            return JsonSerializer.Serialize(new { error = "Failed to list images", message = ex.Message }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Get image details by ID")]
+    [McpServerTool]
+    public async Task<string> GetImageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Getting image with ID={ImageId}", id);
+            var image = await _client.ReadImageAsync(id, cancellationToken);
+            return JsonSerializer.Serialize(image, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get image with ID={ImageId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to get image", message = ex.Message, imageId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
 }

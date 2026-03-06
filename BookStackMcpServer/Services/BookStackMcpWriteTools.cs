@@ -502,4 +502,79 @@ public class BookStackMcpWriteTools
             .ToList();
         return perms.Count > 0 ? perms : null;
     }
+
+    [Description("Upload an image to the gallery. imageBase64 must be base64-encoded image content. type should be 'gallery' or 'drawio'. uploadedTo is the optional page ID to associate the image with (use 0 or omit for no page association).")]
+    [McpServerTool]
+    public async Task<string> CreateImageAsync(string name, string imageBase64, string type = "gallery", int uploadedTo = 0, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating image with name='{ImageName}', type='{Type}', uploadedTo={UploadedTo}", name, type, uploadedTo);
+            var client = GetClient();
+            var imageBytes = Convert.FromBase64String(imageBase64);
+            var args = new CreateImageArgs(uploadedTo, type, name);
+            var result = await client.CreateImageAsync(args, imageBytes, $"{name}.png", cancellationToken);
+            _logger.LogInformation("Image created successfully with ID={ImageId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create image with name='{ImageName}'", name);
+            return JsonSerializer.Serialize(new { error = "Failed to create image", message = ex.Message, imageName = name }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Update an existing image's name. To replace image content, provide imageBase64 with the new base64-encoded image. At least one of name or imageBase64 must be provided.")]
+    [McpServerTool]
+    public async Task<string> UpdateImageAsync(int id, string? name = null, string? imageBase64 = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (name is null && string.IsNullOrEmpty(imageBase64))
+            {
+                return JsonSerializer.Serialize(new { error = "At least one of name or imageBase64 must be provided" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
+            _logger.LogInformation("Updating image with ID={ImageId}", id);
+            var client = GetClient();
+            var args = new UpdateImageArgs(name ?? string.Empty);
+            if (!string.IsNullOrEmpty(imageBase64))
+            {
+                var imageBytes = Convert.FromBase64String(imageBase64);
+                var result = await client.UpdateImageAsync(id, args, imageBytes, "image.png", cancellationToken);
+                _logger.LogInformation("Image updated successfully with ID={ImageId}", result.id);
+                return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            }
+            else
+            {
+                var result = await client.UpdateImageAsync(id, args, path: null, fileName: null, cancellationToken);
+                _logger.LogInformation("Image updated successfully with ID={ImageId}", result.id);
+                return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update image with ID={ImageId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to update image", message = ex.Message, imageId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Delete an image from the gallery")]
+    [McpServerTool]
+    public async Task<string> DeleteImageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting image with ID={ImageId}", id);
+            var client = GetClient();
+            await client.DeleteImageAsync(id, cancellationToken);
+            _logger.LogInformation("Image deleted successfully with ID={ImageId}", id);
+            return JsonSerializer.Serialize(new { success = true }, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete image with ID={ImageId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to delete image", message = ex.Message, imageId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
 }
