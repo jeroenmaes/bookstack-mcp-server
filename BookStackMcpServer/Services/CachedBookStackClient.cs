@@ -289,4 +289,238 @@ public class CachedBookStackClient
         _cache.Set(cacheKey, response, GetCacheEntryOptions());
         return response;
     }
+
+    public async Task<object> ListRolesAsync(ListingOptions listing, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+
+        if (!_cachingOptions.Enabled)
+        {
+            return await client.ListRolesAsync(listing, cancellationToken);
+        }
+
+        var cacheKey = $"roles_list_{listing.offset}_{listing.count}";
+
+        if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
+        {
+            _logger.LogDebug("Cache hit for {CacheKey}", cacheKey);
+            return cachedResponse;
+        }
+
+        _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
+        var response = await client.ListRolesAsync(listing, cancellationToken);
+        _cache.Set(cacheKey, response, GetCacheEntryOptions());
+        return response;
+    }
+
+    public async Task<object> ReadRoleAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+
+        if (!_cachingOptions.Enabled)
+        {
+            return await client.ReadRoleAsync(id, cancellationToken);
+        }
+
+        var cacheKey = $"role_{id}";
+
+        if (_cache.TryGetValue(cacheKey, out object? cachedRole) && cachedRole != null)
+        {
+            _logger.LogDebug("Cache hit for {CacheKey}", cacheKey);
+            return cachedRole;
+        }
+
+        _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
+        var role = await client.ReadRoleAsync(id, cancellationToken);
+        _cache.Set(cacheKey, role, GetCacheEntryOptions());
+        return role;
+    }
+
+    public async Task<object> ListAttachmentsAsync(ListingOptions listing, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+
+        if (!_cachingOptions.Enabled)
+        {
+            return await client.ListAttachmentsAsync(listing, cancellationToken);
+        }
+
+        var cacheKey = $"attachments_list_{listing.offset}_{listing.count}";
+
+        if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
+        {
+            _logger.LogDebug("Cache hit for {CacheKey}", cacheKey);
+            return cachedResponse;
+        }
+
+        _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
+        var response = await client.ListAttachmentsAsync(listing, cancellationToken);
+        _cache.Set(cacheKey, response, GetCacheEntryOptions());
+        return response;
+    }
+
+    public async Task<object> ReadAttachmentAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+
+        if (!_cachingOptions.Enabled)
+        {
+            return await client.ReadAttachmentAsync(id, cancellationToken);
+        }
+
+        var cacheKey = $"attachment_{id}";
+
+        if (_cache.TryGetValue(cacheKey, out object? cachedAttachment) && cachedAttachment != null)
+        {
+            _logger.LogDebug("Cache hit for {CacheKey}", cacheKey);
+            return cachedAttachment;
+        }
+
+        _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
+        var attachment = await client.ReadAttachmentAsync(id, cancellationToken);
+        _cache.Set(cacheKey, attachment, GetCacheEntryOptions());
+        return attachment;
+    }
+
+    public async Task<object> ListRecycleBinAsync(ListingOptions listing, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+
+        if (!_cachingOptions.Enabled)
+        {
+            return await client.ListRecycleBinAsync(listing, cancellationToken);
+        }
+
+        var cacheKey = $"recyclebin_list_{listing.offset}_{listing.count}";
+
+        if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
+        {
+            _logger.LogDebug("Cache hit for {CacheKey}", cacheKey);
+            return cachedResponse;
+        }
+
+        _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
+        var response = await client.ListRecycleBinAsync(listing, cancellationToken);
+        _cache.Set(cacheKey, response, GetCacheEntryOptions());
+        return response;
+    }
+
+    public async Task<object> ListAuditLogAsync(ListingOptions listing, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+
+        if (!_cachingOptions.Enabled)
+        {
+            return await client.ListAuditLogAsync(listing, cancellationToken);
+        }
+
+        var cacheKey = $"auditlog_list_{listing.offset}_{listing.count}";
+
+        if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
+        {
+            _logger.LogDebug("Cache hit for {CacheKey}", cacheKey);
+            return cachedResponse;
+        }
+
+        _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
+        var response = await client.ListAuditLogAsync(listing, cancellationToken);
+        _cache.Set(cacheKey, response, GetCacheEntryOptions());
+        return response;
+    }
+
+    public async Task<object> ReadContentPermissionsAsync(string contentType, int id, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+
+        if (!_cachingOptions.Enabled)
+        {
+            return await client.ReadContentPermissionsAsync(contentType, id, cancellationToken);
+        }
+
+        var cacheKey = $"permissions_{contentType}_{id}";
+
+        if (_cache.TryGetValue(cacheKey, out object? cachedPermissions) && cachedPermissions != null)
+        {
+            _logger.LogDebug("Cache hit for {CacheKey}", cacheKey);
+            return cachedPermissions;
+        }
+
+        _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
+        var permissions = await client.ReadContentPermissionsAsync(contentType, id, cancellationToken);
+        _cache.Set(cacheKey, permissions, GetCacheEntryOptions());
+        return permissions;
+    }
+
+    public async Task<string> ExportBookHtmlAsync(int id, CancellationToken cancellationToken = default)
+        => await GetClient().ExportBookHtmlAsync(id, cancellationToken);
+
+    public async Task<string> ExportBookMarkdownAsync(int id, CancellationToken cancellationToken = default)
+        => await GetClient().ExportBookMarkdownAsync(id, cancellationToken);
+
+    public async Task<string> ExportBookPlainAsync(int id, CancellationToken cancellationToken = default)
+        => await GetClient().ExportBookPlainAsync(id, cancellationToken);
+
+    public async Task<string> ExportChapterHtmlAsync(int id, CancellationToken cancellationToken = default)
+        => await GetClient().ExportChapterHtmlAsync(id, cancellationToken);
+
+    public async Task<string> ExportChapterMarkdownAsync(int id, CancellationToken cancellationToken = default)
+        => await GetClient().ExportChapterMarkdownAsync(id, cancellationToken);
+
+    public async Task<string> ExportChapterPlainAsync(int id, CancellationToken cancellationToken = default)
+        => await GetClient().ExportChapterPlainAsync(id, cancellationToken);
+
+    public async Task<string> ExportPageHtmlAsync(int id, CancellationToken cancellationToken = default)
+        => await GetClient().ExportPageHtmlAsync(id, cancellationToken);
+
+    public async Task<string> ExportPageMarkdownAsync(int id, CancellationToken cancellationToken = default)
+        => await GetClient().ExportPageMarkdownAsync(id, cancellationToken);
+
+    public async Task<string> ExportPagePlainAsync(int id, CancellationToken cancellationToken = default)
+        => await GetClient().ExportPagePlainAsync(id, cancellationToken);
+
+    public async Task<object> ListImagesAsync(ListingOptions listing, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+
+        if (!_cachingOptions.Enabled)
+        {
+            return await client.ListImagesAsync(listing, cancellationToken);
+        }
+
+        var cacheKey = $"images_list_{listing.offset}_{listing.count}";
+
+        if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
+        {
+            _logger.LogDebug("Cache hit for {CacheKey}", cacheKey);
+            return cachedResponse;
+        }
+
+        _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
+        var response = await client.ListImagesAsync(listing, cancellationToken);
+        _cache.Set(cacheKey, response, GetCacheEntryOptions());
+        return response;
+    }
+
+    public async Task<object> ReadImageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var client = GetClient();
+
+        if (!_cachingOptions.Enabled)
+        {
+            return await client.ReadImageAsync(id, cancellationToken);
+        }
+
+        var cacheKey = $"image_{id}";
+
+        if (_cache.TryGetValue(cacheKey, out object? cachedImage) && cachedImage != null)
+        {
+            _logger.LogDebug("Cache hit for {CacheKey}", cacheKey);
+            return cachedImage;
+        }
+
+        _logger.LogDebug("Cache miss for {CacheKey}", cacheKey);
+        var image = await client.ReadImageAsync(id, cancellationToken);
+        _cache.Set(cacheKey, image, GetCacheEntryOptions());
+        return image;
+    }
 }

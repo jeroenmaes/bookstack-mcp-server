@@ -12,6 +12,11 @@ public class BookStackMcpWriteTools
     private readonly BookStackClientFactory _clientFactory;
     private readonly ILogger<BookStackMcpWriteTools> _logger;
 
+    // Base64 encodes ~1.37 bytes per character; this cap ≈ 10 MB decoded
+    private const int MaxBase64ImageLength = 13_981_013;
+
+    private static readonly HashSet<string> ValidImageTypes = new(StringComparer.Ordinal) { "gallery", "drawio" };
+
     public BookStackMcpWriteTools(BookStackClientFactory clientFactory, ILogger<BookStackMcpWriteTools> logger)
     {
         _clientFactory = clientFactory;
@@ -256,6 +261,354 @@ public class BookStackMcpWriteTools
         {
             _logger.LogError(ex, "Failed to delete shelf with ID={ShelfId}", id);
             return JsonSerializer.Serialize(new { error = "Failed to delete shelf", message = ex.Message, shelfId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Create a new user")]
+    [McpServerTool]
+    public async Task<string> CreateUserAsync(string name, string email, string? password = null, string? roleIds = null, bool? sendInvite = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating user with name='{UserName}', email='{Email}'", name, email);
+            var client = GetClient();
+            var roles = ParseRoleIds(roleIds);
+            var args = new CreateUserArgs(name, email, null, null, password, roles, sendInvite);
+            var result = await client.CreateUserAsync(args, cancellationToken);
+            _logger.LogInformation("User created successfully with ID={UserId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create user with name='{UserName}', email='{Email}'", name, email);
+            return JsonSerializer.Serialize(new { error = "Failed to create user", message = ex.Message, userName = name, email }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Update an existing user")]
+    [McpServerTool]
+    public async Task<string> UpdateUserAsync(int id, string? name = null, string? email = null, string? password = null, string? roleIds = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Updating user with ID={UserId}, name='{UserName}'", id, name);
+            var client = GetClient();
+            var roles = ParseRoleIds(roleIds);
+            var args = new UpdateUserArgs(name, email, null, null, password, roles, null);
+            var result = await client.UpdateUserAsync(id, args, cancellationToken);
+            _logger.LogInformation("User updated successfully with ID={UserId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update user with ID={UserId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to update user", message = ex.Message, userId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Delete a user")]
+    [McpServerTool]
+    public async Task<string> DeleteUserAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting user with ID={UserId}", id);
+            var client = GetClient();
+            await client.DeleteUserAsync(id, cancellationToken);
+            _logger.LogInformation("User deleted successfully with ID={UserId}", id);
+            return JsonSerializer.Serialize(new { success = true }, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete user with ID={UserId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to delete user", message = ex.Message, userId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Create a new role")]
+    [McpServerTool]
+    public async Task<string> CreateRoleAsync(string displayName, string? description = null, bool? mfaEnforced = null, string? permissions = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating role with displayName='{DisplayName}'", displayName);
+            var client = GetClient();
+            var permissionList = ParsePermissions(permissions);
+            var args = new CreateRoleArgs(displayName, description, mfaEnforced, null, permissionList);
+            var result = await client.CreateRoleAsync(args, cancellationToken);
+            _logger.LogInformation("Role created successfully with ID={RoleId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create role with displayName='{DisplayName}'", displayName);
+            return JsonSerializer.Serialize(new { error = "Failed to create role", message = ex.Message, displayName }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Update an existing role")]
+    [McpServerTool]
+    public async Task<string> UpdateRoleAsync(int id, string? displayName = null, string? description = null, bool? mfaEnforced = null, string? permissions = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Updating role with ID={RoleId}, displayName='{DisplayName}'", id, displayName);
+            var client = GetClient();
+            var permissionList = ParsePermissions(permissions);
+            var args = new UpdateRoleArgs(displayName, description, mfaEnforced, null, permissionList);
+            var result = await client.UpdateRoleAsync(id, args, cancellationToken);
+            _logger.LogInformation("Role updated successfully with ID={RoleId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update role with ID={RoleId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to update role", message = ex.Message, roleId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Delete a role")]
+    [McpServerTool]
+    public async Task<string> DeleteRoleAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting role with ID={RoleId}", id);
+            var client = GetClient();
+            await client.DeleteRoleAsync(id, cancellationToken);
+            _logger.LogInformation("Role deleted successfully with ID={RoleId}", id);
+            return JsonSerializer.Serialize(new { success = true }, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete role with ID={RoleId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to delete role", message = ex.Message, roleId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Create a new link attachment on a page")]
+    [McpServerTool]
+    public async Task<string> CreateAttachmentAsync(string name, int uploadedTo, string link, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!Uri.TryCreate(link, UriKind.Absolute, out var uri) ||
+                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            {
+                return JsonSerializer.Serialize(new { error = "Invalid link: only http and https URLs are allowed" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
+            _logger.LogInformation("Creating link attachment with name='{AttachmentName}', pageId={PageId}", name, uploadedTo);
+            var client = GetClient();
+            var args = new CreateLinkAttachmentArgs(name, uploadedTo, link);
+            var result = await client.CreateLinkAttachmentAsync(args, cancellationToken);
+            _logger.LogInformation("Attachment created successfully with ID={AttachmentId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create attachment with name='{AttachmentName}', pageId={PageId}", name, uploadedTo);
+            return JsonSerializer.Serialize(new { error = "Failed to create attachment", message = ex.Message, attachmentName = name, uploadedTo }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Update an existing link attachment")]
+    [McpServerTool]
+    public async Task<string> UpdateAttachmentAsync(int id, string? name = null, string? link = null, int? uploadedTo = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (link is not null &&
+                (!Uri.TryCreate(link, UriKind.Absolute, out var uri) ||
+                 (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
+            {
+                return JsonSerializer.Serialize(new { error = "Invalid link: only http and https URLs are allowed" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
+            _logger.LogInformation("Updating attachment with ID={AttachmentId}", id);
+            var client = GetClient();
+            var args = new UpdateLinkAttachmentArgs(name, uploadedTo.HasValue ? (long?)uploadedTo.Value : null, link);
+            var result = await client.UpdateLinkAttachmentAsync(id, args, cancellationToken);
+            _logger.LogInformation("Attachment updated successfully with ID={AttachmentId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update attachment with ID={AttachmentId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to update attachment", message = ex.Message, attachmentId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Delete an attachment")]
+    [McpServerTool]
+    public async Task<string> DeleteAttachmentAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting attachment with ID={AttachmentId}", id);
+            var client = GetClient();
+            await client.DeleteAttachmentAsync(id, cancellationToken);
+            _logger.LogInformation("Attachment deleted successfully with ID={AttachmentId}", id);
+            return JsonSerializer.Serialize(new { success = true }, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete attachment with ID={AttachmentId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to delete attachment", message = ex.Message, attachmentId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Restore a deleted item from the recycle bin")]
+    [McpServerTool]
+    public async Task<string> RestoreRecycleItemAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Restoring recycle bin item with ID={DeletionId}", id);
+            var client = GetClient();
+            var result = await client.RestoreRecycleItemAsync(id, cancellationToken);
+            _logger.LogInformation("Recycle bin item restored successfully, restore_count={RestoreCount}", result.restore_count);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to restore recycle bin item with ID={DeletionId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to restore recycle bin item", message = ex.Message, deletionId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Permanently delete an item from the recycle bin")]
+    [McpServerTool]
+    public async Task<string> DestroyRecycleItemAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Permanently deleting recycle bin item with ID={DeletionId}", id);
+            var client = GetClient();
+            await client.DestroyRecycleItemAsync(id, cancellationToken);
+            _logger.LogInformation("Recycle bin item permanently deleted with ID={DeletionId}", id);
+            return JsonSerializer.Serialize(new { success = true }, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to permanently delete recycle bin item with ID={DeletionId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to permanently delete recycle bin item", message = ex.Message, deletionId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    private static IReadOnlyList<long>? ParseRoleIds(string? roleIds)
+    {
+        if (string.IsNullOrWhiteSpace(roleIds))
+            return null;
+
+        var ids = new List<long>();
+        foreach (var part in roleIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (long.TryParse(part, out var roleId))
+                ids.Add(roleId);
+        }
+        return ids.Count > 0 ? ids : null;
+    }
+
+    private static IReadOnlyList<string>? ParsePermissions(string? permissions)
+    {
+        if (string.IsNullOrWhiteSpace(permissions))
+            return null;
+
+        var perms = permissions
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+        return perms.Count > 0 ? perms : null;
+    }
+
+    [Description("Upload an image to the gallery. imageBase64 must be base64-encoded image content. type should be 'gallery' or 'drawio'. uploadedTo is the optional page ID to associate the image with (use 0 or omit for no page association).")]
+    [McpServerTool]
+    public async Task<string> CreateImageAsync(string name, string imageBase64, string type = "gallery", int uploadedTo = 0, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!ValidImageTypes.Contains(type))
+            {
+                return JsonSerializer.Serialize(new { error = "Invalid type: must be 'gallery' or 'drawio'" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
+            if (imageBase64.Length > MaxBase64ImageLength)
+            {
+                return JsonSerializer.Serialize(new { error = "Image too large: maximum size is 10 MB" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
+            _logger.LogInformation("Creating image with name='{ImageName}', type='{Type}', uploadedTo={UploadedTo}", name, type, uploadedTo);
+            var client = GetClient();
+            var imageBytes = Convert.FromBase64String(imageBase64);
+            var args = new CreateImageArgs(uploadedTo, type, name);
+            var result = await client.CreateImageAsync(args, imageBytes, $"{name}.png", cancellationToken);
+            _logger.LogInformation("Image created successfully with ID={ImageId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create image with name='{ImageName}'", name);
+            return JsonSerializer.Serialize(new { error = "Failed to create image", message = ex.Message, imageName = name }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Update an existing image's name. To replace image content, provide imageBase64 with the new base64-encoded image. At least one of name or imageBase64 must be provided.")]
+    [McpServerTool]
+    public async Task<string> UpdateImageAsync(int id, string? name = null, string? imageBase64 = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (name is null && string.IsNullOrEmpty(imageBase64))
+            {
+                return JsonSerializer.Serialize(new { error = "At least one of name or imageBase64 must be provided" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
+            // Base64 encodes ~1.37 bytes per character; 13_981_013 chars ≈ 10 MB decoded
+            if (imageBase64 is not null && imageBase64.Length > MaxBase64ImageLength)
+            {
+                return JsonSerializer.Serialize(new { error = "Image too large: maximum size is 10 MB" }, new JsonSerializerOptions { WriteIndented = true });
+            }
+
+            _logger.LogInformation("Updating image with ID={ImageId}", id);
+            var client = GetClient();
+            var args = new UpdateImageArgs(name ?? string.Empty);
+            if (!string.IsNullOrEmpty(imageBase64))
+            {
+                var imageBytes = Convert.FromBase64String(imageBase64);
+                var result = await client.UpdateImageAsync(id, args, imageBytes, "image.png", cancellationToken);
+                _logger.LogInformation("Image updated successfully with ID={ImageId}", result.id);
+                return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            }
+            else
+            {
+                var result = await client.UpdateImageAsync(id, args, path: null, fileName: null, cancellationToken);
+                _logger.LogInformation("Image updated successfully with ID={ImageId}", result.id);
+                return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update image with ID={ImageId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to update image", message = ex.Message, imageId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
+    [Description("Delete an image from the gallery")]
+    [McpServerTool]
+    public async Task<string> DeleteImageAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting image with ID={ImageId}", id);
+            var client = GetClient();
+            await client.DeleteImageAsync(id, cancellationToken);
+            _logger.LogInformation("Image deleted successfully with ID={ImageId}", id);
+            return JsonSerializer.Serialize(new { success = true }, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete image with ID={ImageId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to delete image", message = ex.Message, imageId = id }, new JsonSerializerOptions { WriteIndented = true });
         }
     }
 }
