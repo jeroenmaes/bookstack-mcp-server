@@ -43,6 +43,26 @@ public class BookStackMcpWriteTools
         }
     }
     
+    [Description("Update an existing book")]
+    [McpServerTool]
+    public async Task<string> UpdateBookAsync(int id, string? name = null, string? description = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Updating book with ID={BookId}, name='{BookName}'", id, name);
+            var client = GetClient();
+            var args = new UpdateBookArgs(name, description);
+            var result = await client.UpdateBookAsync(id, args, imgPath: null, imgName: null, cancelToken: cancellationToken);
+            _logger.LogInformation("Book updated successfully with ID={BookId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update book with ID={BookId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to update book", message = ex.Message, bookId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
     [Description("Delete a book")]
     [McpServerTool]
     public async Task<string> DeleteBookAsync(int id, CancellationToken cancellationToken = default)
@@ -82,6 +102,26 @@ public class BookStackMcpWriteTools
         }
     }
     
+    [Description("Update an existing chapter")]
+    [McpServerTool]
+    public async Task<string> UpdateChapterAsync(int id, string? name = null, string? description = null, int? bookId = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Updating chapter with ID={ChapterId}, name='{ChapterName}', bookId={BookId}", id, name, bookId);
+            var client = GetClient();
+            var args = new UpdateChapterArgs(name, description, book_id: bookId);
+            var result = await client.UpdateChapterAsync(id, args, cancellationToken);
+            _logger.LogInformation("Chapter updated successfully with ID={ChapterId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update chapter with ID={ChapterId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to update chapter", message = ex.Message, chapterId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
     [Description("Delete a chapter")]
     [McpServerTool]
     public async Task<string> DeleteChapterAsync(int id, CancellationToken cancellationToken = default)
@@ -121,6 +161,26 @@ public class BookStackMcpWriteTools
         }
     }
     
+    [Description("Update an existing page")]
+    [McpServerTool]
+    public async Task<string> UpdatePageAsync(int id, string? name = null, string? content = null, int? bookId = null, int? chapterId = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Updating page with ID={PageId}, name='{PageName}', bookId={BookId}, chapterId={ChapterId}", id, name, bookId, chapterId);
+            var client = GetClient();
+            var args = new UpdatePageArgs(name, bookId, chapterId, html: content);
+            var result = await client.UpdatePageAsync(id, args, cancellationToken);
+            _logger.LogInformation("Page updated successfully with ID={PageId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update page with ID={PageId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to update page", message = ex.Message, pageId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
     [Description("Delete a page")]
     [McpServerTool]
     public async Task<string> DeletePageAsync(int id, CancellationToken cancellationToken = default)
@@ -160,6 +220,26 @@ public class BookStackMcpWriteTools
         }
     }
     
+    [Description("Update an existing shelf")]
+    [McpServerTool]
+    public async Task<string> UpdateShelfAsync(int id, string? name = null, string? description = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Updating shelf with ID={ShelfId}, name='{ShelfName}'", id, name);
+            var client = GetClient();
+            var args = new UpdateShelfArgs(name, description);
+            var result = await client.UpdateShelfAsync(id, args, imgPath: null, imgName: null, cancelToken: cancellationToken);
+            _logger.LogInformation("Shelf updated successfully with ID={ShelfId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update shelf with ID={ShelfId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to update shelf", message = ex.Message, shelfId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
     [Description("Delete a shelf")]
     [McpServerTool]
     public async Task<string> DeleteShelfAsync(int id, CancellationToken cancellationToken = default)
