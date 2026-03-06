@@ -1,4 +1,5 @@
 using BookStackApiClient;
+using BookStackMcpServer.Middleware;
 using BookStackMcpServer.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -12,22 +13,39 @@ public class CachedBookStackClient
     private readonly IMemoryCache _cache;
     private readonly ILogger<CachedBookStackClient> _logger;
     private readonly CachingOptions _cachingOptions;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public CachedBookStackClient(
         BookStackClientFactory clientFactory, 
         IMemoryCache cache, 
         ILogger<CachedBookStackClient> logger,
-        IOptions<CachingOptions> cachingOptions)
+        IOptions<CachingOptions> cachingOptions,
+        IHttpContextAccessor httpContextAccessor)
     {
         _clientFactory = clientFactory;
         _cache = cache;
         _logger = logger;
         _cachingOptions = cachingOptions.Value;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     private BookStackClient GetClient()
     {
         return _clientFactory.CreateClient();
+    }
+
+    /// <summary>
+    /// Returns a cache key prefix scoped to the current request's token ID,
+    /// ensuring that cached data is never shared across different API credentials.
+    /// </summary>
+    private string GetTokenCachePrefix()
+    {
+        var tokenId = _httpContextAccessor.HttpContext?.Items[BookStackAuthenticationMiddleware.BookStackTokenIdContextKey] as string;
+        if (string.IsNullOrEmpty(tokenId))
+        {
+            throw new InvalidOperationException("BookStack token ID not found in request context");
+        }
+        return tokenId;
     }
 
     private MemoryCacheEntryOptions GetCacheEntryOptions()
@@ -46,7 +64,7 @@ public class CachedBookStackClient
             return await client.ListBooksAsync(listing, cancellationToken);
         }
 
-        var cacheKey = $"books_list_{listing.offset}_{listing.count}";
+        var cacheKey = $"{GetTokenCachePrefix()}_books_list_{listing.offset}_{listing.count}";
         
         if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
         {
@@ -69,7 +87,7 @@ public class CachedBookStackClient
             return await client.ReadBookAsync(id, cancellationToken);
         }
 
-        var cacheKey = $"book_{id}";
+        var cacheKey = $"{GetTokenCachePrefix()}_book_{id}";
         
         if (_cache.TryGetValue(cacheKey, out object? cachedBook) && cachedBook != null)
         {
@@ -92,7 +110,7 @@ public class CachedBookStackClient
             return await client.ListChaptersAsync(listing, cancellationToken);
         }
 
-        var cacheKey = $"chapters_list_{listing.offset}_{listing.count}";
+        var cacheKey = $"{GetTokenCachePrefix()}_chapters_list_{listing.offset}_{listing.count}";
         
         if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
         {
@@ -115,7 +133,7 @@ public class CachedBookStackClient
             return await client.ReadChapterAsync(id, cancellationToken);
         }
 
-        var cacheKey = $"chapter_{id}";
+        var cacheKey = $"{GetTokenCachePrefix()}_chapter_{id}";
         
         if (_cache.TryGetValue(cacheKey, out object? cachedChapter) && cachedChapter != null)
         {
@@ -138,7 +156,7 @@ public class CachedBookStackClient
             return await client.ListPagesAsync(listing, cancellationToken);
         }
 
-        var cacheKey = $"pages_list_{listing.offset}_{listing.count}";
+        var cacheKey = $"{GetTokenCachePrefix()}_pages_list_{listing.offset}_{listing.count}";
         
         if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
         {
@@ -161,7 +179,7 @@ public class CachedBookStackClient
             return await client.ReadPageAsync(id, cancellationToken);
         }
 
-        var cacheKey = $"page_{id}";
+        var cacheKey = $"{GetTokenCachePrefix()}_page_{id}";
         
         if (_cache.TryGetValue(cacheKey, out object? cachedPage) && cachedPage != null)
         {
@@ -184,7 +202,7 @@ public class CachedBookStackClient
             return await client.ListShelvesAsync(listing, cancellationToken);
         }
 
-        var cacheKey = $"shelves_list_{listing.offset}_{listing.count}";
+        var cacheKey = $"{GetTokenCachePrefix()}_shelves_list_{listing.offset}_{listing.count}";
         
         if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
         {
@@ -207,7 +225,7 @@ public class CachedBookStackClient
             return await client.ReadShelfAsync(id, cancellationToken);
         }
 
-        var cacheKey = $"shelf_{id}";
+        var cacheKey = $"{GetTokenCachePrefix()}_shelf_{id}";
         
         if (_cache.TryGetValue(cacheKey, out object? cachedShelf) && cachedShelf != null)
         {
@@ -230,7 +248,7 @@ public class CachedBookStackClient
             return await client.ListUsersAsync(listing, cancellationToken);
         }
 
-        var cacheKey = $"users_list_{listing.offset}_{listing.count}";
+        var cacheKey = $"{GetTokenCachePrefix()}_users_list_{listing.offset}_{listing.count}";
         
         if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
         {
@@ -253,7 +271,7 @@ public class CachedBookStackClient
             return await client.ReadUserAsync(id, cancellationToken);
         }
 
-        var cacheKey = $"user_{id}";
+        var cacheKey = $"{GetTokenCachePrefix()}_user_{id}";
         
         if (_cache.TryGetValue(cacheKey, out object? cachedUser) && cachedUser != null)
         {
@@ -276,7 +294,7 @@ public class CachedBookStackClient
             return await client.SearchAsync(args, cancellationToken);
         }
 
-        var cacheKey = $"search_{args.query}_{args.count}_{args.page}";
+        var cacheKey = $"{GetTokenCachePrefix()}_search_{args.query}_{args.count}_{args.page}";
         
         if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
         {
@@ -299,7 +317,7 @@ public class CachedBookStackClient
             return await client.ListRolesAsync(listing, cancellationToken);
         }
 
-        var cacheKey = $"roles_list_{listing.offset}_{listing.count}";
+        var cacheKey = $"{GetTokenCachePrefix()}_roles_list_{listing.offset}_{listing.count}";
 
         if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
         {
@@ -322,7 +340,7 @@ public class CachedBookStackClient
             return await client.ReadRoleAsync(id, cancellationToken);
         }
 
-        var cacheKey = $"role_{id}";
+        var cacheKey = $"{GetTokenCachePrefix()}_role_{id}";
 
         if (_cache.TryGetValue(cacheKey, out object? cachedRole) && cachedRole != null)
         {
@@ -345,7 +363,7 @@ public class CachedBookStackClient
             return await client.ListAttachmentsAsync(listing, cancellationToken);
         }
 
-        var cacheKey = $"attachments_list_{listing.offset}_{listing.count}";
+        var cacheKey = $"{GetTokenCachePrefix()}_attachments_list_{listing.offset}_{listing.count}";
 
         if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
         {
@@ -368,7 +386,7 @@ public class CachedBookStackClient
             return await client.ReadAttachmentAsync(id, cancellationToken);
         }
 
-        var cacheKey = $"attachment_{id}";
+        var cacheKey = $"{GetTokenCachePrefix()}_attachment_{id}";
 
         if (_cache.TryGetValue(cacheKey, out object? cachedAttachment) && cachedAttachment != null)
         {
@@ -391,7 +409,7 @@ public class CachedBookStackClient
             return await client.ListRecycleBinAsync(listing, cancellationToken);
         }
 
-        var cacheKey = $"recyclebin_list_{listing.offset}_{listing.count}";
+        var cacheKey = $"{GetTokenCachePrefix()}_recyclebin_list_{listing.offset}_{listing.count}";
 
         if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
         {
@@ -414,7 +432,7 @@ public class CachedBookStackClient
             return await client.ListAuditLogAsync(listing, cancellationToken);
         }
 
-        var cacheKey = $"auditlog_list_{listing.offset}_{listing.count}";
+        var cacheKey = $"{GetTokenCachePrefix()}_auditlog_list_{listing.offset}_{listing.count}";
 
         if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
         {
@@ -437,7 +455,7 @@ public class CachedBookStackClient
             return await client.ReadContentPermissionsAsync(contentType, id, cancellationToken);
         }
 
-        var cacheKey = $"permissions_{contentType}_{id}";
+        var cacheKey = $"{GetTokenCachePrefix()}_permissions_{contentType}_{id}";
 
         if (_cache.TryGetValue(cacheKey, out object? cachedPermissions) && cachedPermissions != null)
         {
@@ -487,7 +505,7 @@ public class CachedBookStackClient
             return await client.ListImagesAsync(listing, cancellationToken);
         }
 
-        var cacheKey = $"images_list_{listing.offset}_{listing.count}";
+        var cacheKey = $"{GetTokenCachePrefix()}_images_list_{listing.offset}_{listing.count}";
 
         if (_cache.TryGetValue(cacheKey, out object? cachedResponse) && cachedResponse != null)
         {
@@ -510,7 +528,7 @@ public class CachedBookStackClient
             return await client.ReadImageAsync(id, cancellationToken);
         }
 
-        var cacheKey = $"image_{id}";
+        var cacheKey = $"{GetTokenCachePrefix()}_image_{id}";
 
         if (_cache.TryGetValue(cacheKey, out object? cachedImage) && cachedImage != null)
         {
