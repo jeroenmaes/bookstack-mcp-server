@@ -121,6 +121,26 @@ public class BookStackMcpWriteTools
         }
     }
     
+    [Description("Update an existing page")]
+    [McpServerTool]
+    public async Task<string> UpdatePageAsync(int id, string? name = null, string? content = null, int? bookId = null, int? chapterId = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Updating page with ID={PageId}, name='{PageName}', bookId={BookId}, chapterId={ChapterId}", id, name, bookId, chapterId);
+            var client = GetClient();
+            var args = new UpdatePageArgs(name, bookId, chapterId, html: content);
+            var result = await client.UpdatePageAsync(id, args, cancellationToken);
+            _logger.LogInformation("Page updated successfully with ID={PageId}", result.id);
+            return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update page with ID={PageId}", id);
+            return JsonSerializer.Serialize(new { error = "Failed to update page", message = ex.Message, pageId = id }, new JsonSerializerOptions { WriteIndented = true });
+        }
+    }
+
     [Description("Delete a page")]
     [McpServerTool]
     public async Task<string> DeletePageAsync(int id, CancellationToken cancellationToken = default)
