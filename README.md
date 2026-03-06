@@ -6,40 +6,82 @@ An ASP.NET Core 10 Model Context Protocol (MCP) server that provides tools for i
 
 This MCP server implements tools for all major BookStack API endpoints:
 
-**Note:** Write operations (create/delete) are disabled by default. Set `BookStack:EnableWrite` to `true` to enable them.
+**Note:** Write operations (create/update/delete) are disabled by default. Set `BookStack:EnableWrite` to `true` to enable them.
 
 ### Books Management
 - `list_books` - List all books with pagination
 - `get_book` - Get detailed information about a specific book
+- `export_book` - Export a book in html, markdown, or plaintext format
 - `create_book` - Create a new book (requires `EnableWrite: true`)
+- `update_book` - Update an existing book (requires `EnableWrite: true`)
 - `delete_book` - Delete a book (requires `EnableWrite: true`)
 
-### Chapters Management  
+### Chapters Management
 - `list_chapters` - List all chapters with pagination
 - `get_chapter` - Get detailed information about a specific chapter
+- `export_chapter` - Export a chapter in html, markdown, or plaintext format
 - `create_chapter` - Create a new chapter in a book (requires `EnableWrite: true`)
+- `update_chapter` - Update an existing chapter (requires `EnableWrite: true`)
 - `delete_chapter` - Delete a chapter (requires `EnableWrite: true`)
 
 ### Pages Management
 - `list_pages` - List all pages with pagination
 - `get_page` - Get detailed information about a specific page
+- `export_page` - Export a page in html, markdown, or plaintext format
 - `create_page` - Create a new page in a book or chapter (requires `EnableWrite: true`)
+- `update_page` - Update an existing page (requires `EnableWrite: true`)
 - `delete_page` - Delete a page (requires `EnableWrite: true`)
 
 ### Shelves Management
 - `list_shelves` - List all shelves with pagination
 - `get_shelf` - Get detailed information about a specific shelf
 - `create_shelf` - Create a new shelf (requires `EnableWrite: true`)
+- `update_shelf` - Update an existing shelf (requires `EnableWrite: true`)
 - `delete_shelf` - Delete a shelf (requires `EnableWrite: true`)
 
 ### Users Management
 - `list_users` - List all users with pagination
 - `get_user` - Get detailed information about a specific user
+- `create_user` - Create a new user (requires `EnableWrite: true`)
+- `update_user` - Update an existing user (requires `EnableWrite: true`)
+- `delete_user` - Delete a user (requires `EnableWrite: true`)
+
+### Roles Management
+- `list_roles` - List all roles with pagination
+- `get_role` - Get detailed information about a specific role
+- `create_role` - Create a new role (requires `EnableWrite: true`)
+- `update_role` - Update an existing role (requires `EnableWrite: true`)
+- `delete_role` - Delete a role (requires `EnableWrite: true`)
+
+### Attachments Management
+- `list_attachments` - List all attachments with pagination
+- `get_attachment` - Get attachment details by ID
+- `create_attachment` - Create a new link attachment on a page (requires `EnableWrite: true`)
+- `update_attachment` - Update an existing link attachment (requires `EnableWrite: true`)
+- `delete_attachment` - Delete an attachment (requires `EnableWrite: true`)
+
+### Images Management
+- `list_images` - List gallery images with pagination
+- `get_image` - Get image details by ID
+- `create_image` - Upload an image to the gallery (requires `EnableWrite: true`)
+- `update_image` - Update an existing image (requires `EnableWrite: true`)
+- `delete_image` - Delete an image (requires `EnableWrite: true`)
+
+### Recycle Bin
+- `list_recycle_bin` - List items in the recycle bin with pagination
+- `restore_recycle_item` - Restore a deleted item from the recycle bin (requires `EnableWrite: true`)
+- `destroy_recycle_item` - Permanently delete an item from the recycle bin (requires `EnableWrite: true`)
+
+### Audit Log
+- `list_audit_log` - List audit log entries with pagination
+
+### Content Permissions
+- `read_content_permissions` - Read content permissions for a book, chapter, page, or shelf
 
 ### Search Functionality
 - `search_all` - Search across all BookStack content (books, chapters, pages)
 - `search_books` - Search for books by name or description
-- `search_chapters` - Search for chapters by name or description  
+- `search_chapters` - Search for chapters by name or description
 - `search_pages` - Search for pages by name or content
 - `search_shelves` - Search for shelves by name or description
 - `search_users` - Search for users by name or email
@@ -56,8 +98,8 @@ This MCP server implements tools for all major BookStack API endpoints:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/jeroenmaes/dotnet-bookstack-mcp-server.git
-cd dotnet-bookstack-mcp-server
+git clone https://github.com/jeroenmaes/bookstack-mcp-server.git
+cd bookstack-mcp-server
 ```
 
 2. Configure your BookStack base URL in `BookStackMcpServer/appsettings.json`:
@@ -87,7 +129,7 @@ Authorization: Bearer <token_id>:<token_secret>
 
 Example:
 ```bash
-curl -X POST http://server:5230/mcp/v1 \
+curl -X POST http://localhost:5230/mcp \
   -H "Authorization: Bearer your-token-id:your-token-secret" \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
@@ -144,13 +186,13 @@ Pre-built images are available from GitHub Container Registry:
 
 ```bash
 # Pull the latest image
-docker pull ghcr.io/jeroenmaes/dotnet-bookstack-mcp-server:latest
+docker pull ghcr.io/jeroenmaes/bookstack-mcp-server:latest
 
 # Pull a specific build number
-docker pull ghcr.io/jeroenmaes/dotnet-bookstack-mcp-server:build-123
+docker pull ghcr.io/jeroenmaes/bookstack-mcp-server:build-123
 
 # Pull a specific version tag
-docker pull ghcr.io/jeroenmaes/dotnet-bookstack-mcp-server:v1.0.0
+docker pull ghcr.io/jeroenmaes/bookstack-mcp-server:v1.0.0
 ```
 
 ## MCP Protocol
@@ -169,7 +211,7 @@ The server validates these credentials on each request and uses them to authenti
 
 ### Read-Only Mode (Default)
 
-By default, the server operates in read-only mode for safety. Write operations (`create_*` and `delete_*` tools) are disabled unless explicitly enabled.
+By default, the server operates in read-only mode for safety. Write operations (`create_*`, `update_*`, and `delete_*` tools) are disabled unless explicitly enabled.
 
 **To enable write operations:**
 
@@ -199,8 +241,8 @@ docker run -d \
 ```
 
 **Notes:**
-- When `EnableWrite` is `false` (default), only read operations (list, get, search) are available
-- When `EnableWrite` is `true`, create and delete operations become available
+- When `EnableWrite` is `false` (default), only read operations (list, get, search, export) are available
+- When `EnableWrite` is `true`, create, update, and delete operations become available
 - This provides an extra layer of protection against accidental modifications to your BookStack content
 - Write permissions are still subject to the BookStack API token's actual permissions
 
@@ -235,8 +277,6 @@ Throttling__QueueLimit=0
 docker run -d \
   -p 8080:8080 \
   -e BookStack__BaseUrl=https://your-bookstack-instance.com \
-  -e BookStack__TokenId=your-token-id \
-  -e BookStack__TokenSecret=your-token-secret \
   -e Throttling__Enabled=true \
   -e Throttling__PermitLimit=100 \
   -e Throttling__WindowSeconds=60 \
@@ -285,8 +325,8 @@ curl http://localhost:8080/health
 ## Dependencies
 
 - **ASP.NET Core 10** - Web framework
-- **ModelContextProtocol.AspNetCore** (0.4.0-preview.2) - MCP server implementation
-- **BookStackApiClient** (25.11.0-lib.2) - BookStack API client library
+- **ModelContextProtocol.AspNetCore** (1.0.0) - MCP server implementation
+- **BookStackApiClient** (25.12.0-lib.0) - BookStack API client library
 
 ## License
 
