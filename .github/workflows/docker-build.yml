@@ -37,7 +37,7 @@ jobs:
       run: dotnet test BookStackMcpServer.Tests/BookStackMcpServer.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
 
     - name: Publish Test Results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: test-results
@@ -75,7 +75,7 @@ jobs:
 
     - name: Upload build artifacts
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: build-artifacts
         path: |
